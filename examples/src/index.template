@@ -19,8 +19,9 @@
     </audio>
 
     <style></style>
+
     <script type="module">
-// import nkRAdio from './nk-radio/index.mjs'
+	import nkRAdio from './nk-radio/index.mjs'
 	import initWasmFreeQueue from "./free-queue/free-queue.asm.js"
 	try {
 	    	window["Module"] = {};
