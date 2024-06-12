@@ -8,10 +8,11 @@
 #include <pthread.h>
 #include <unistd.h> 
 
-int treads_busy = 1;
+static int treads_busy = 1;
 
 pthread_t tid_consumer = 0;
 pthread_t tid_producer = 0;
+pthread_t tid_monitor = 0;
 
 struct FreeQueue {
   size_t buffer_length;
@@ -38,9 +39,10 @@ enum FreeQueueState {
 
 void *producer( void *arg ); 
 void *consumer( void *arg );
+void *monitor( void *arg );
 
 static pthread_mutex_t tasks_mutex = PTHREAD_MUTEX_INITIALIZER;
-static struct FreeQueueThread memorydata;
+static struct FreeQueueThread memdata;
 
 uint32_t _getAvailableRead(
   struct FreeQueue *queue, 
@@ -160,14 +162,14 @@ void *GetFreeQueuePointers( struct FreeQueue* queue, char* data )
 
 EMSCRIPTEN_KEEPALIVE 
 int DestroyFreeQueueThreads() {
-  if ( memorydata.instance != nullptr ) {
-    memorydata.busy = 0;
+  if ( memdata.instance != nullptr ) {
+    memdata.busy = 0;
     pthread_join(tid_producer, 0);
     pthread_join(tid_consumer, 0);
-    DestroyFreeQueue( memorydata.instance );
+    DestroyFreeQueue( memdata.instance );
     tid_producer = 0;
     tid_consumer = 0;
-    memorydata.instance = nullptr;
+    memdata.instance = nullptr;
     return 1;
   }
   return 0;
@@ -176,21 +178,30 @@ int DestroyFreeQueueThreads() {
 EMSCRIPTEN_KEEPALIVE 
 int CreateFreeQueueThreads() {
   uint32_t channel_count = 2;
-  uint32_t length = 1764;
-  if ( memorydata.instance == nullptr ) {
-    memorydata.busy = 1;
-    memorydata.instance = CreateFreeQueue( length * 500, channel_count );
+  uint32_t length = 2000; //1764;
+  if ( memdata.instance == nullptr ) {
+    memdata.busy = 1;
+    memdata.instance = CreateFreeQueue( length * 50, channel_count );
     int p = 0;
-    p = pthread_create( &tid_consumer, 0, consumer, &memorydata );
+    p = pthread_create( &tid_monitor, 0, monitor, &memdata );
+    if ( p ) {
+      return -1;
+    }
+    printf( "CreateThreads: monitor thread created...\n" );
+
+    p = pthread_create( &tid_consumer, 0, consumer, &memdata );
     if ( p ) {
       return -1;
     }
     printf( "CreateThreads: consumer thread created...\n" );
-    p = pthread_create( &tid_producer, 0, producer, &memorydata );
+
+/*
+    p = pthread_create( &tid_producer, 0, producer, &memdata );
     if ( p ) {
       return -1;
     }
     printf( "CreateThreads: producer thread created...\n" );
+*/
     return 1;
   }
   return 0;
@@ -198,8 +209,8 @@ int CreateFreeQueueThreads() {
 
 EMSCRIPTEN_KEEPALIVE 
 struct FreeQueue *GetFreeQueueThreads() {
-  if ( memorydata.instance != nullptr ) {
-    return memorydata.instance;
+  if ( memdata.instance != nullptr ) {
+    return memdata.instance;
   }
   return nullptr;
 }
@@ -318,8 +329,11 @@ void *consumer( void *arg )
       pthread_mutex_lock( &tasks_mutex );
       //printf( "consumer: [ read is %d; write is %d ]\n", current_read, current_write );
       ////////////////////////////////////////////////////////////////////////////////////////
+      uint32_t availRead = _getAvailableRead(instance, current_read, current_write);
+      if ( availRead > 0 && availRead < length ) length = availRead;
+      else length = 1764;
       bool rc = FreeQueuePull(instance, output, length);
-      //printf( "FreeQueuePull: %s\n", ( rc == true ) ? "true" : "false" );
+      printf( "FreeQueuePull: %s\n", ( rc == true ) ? "true" : "false" );
       ////////////////////////////////////////////////////////////////////////////////////////
       pthread_mutex_unlock( &tasks_mutex );
       usleep( 120 * 1000 ); // 120ms 3fps
@@ -330,10 +344,44 @@ void *consumer( void *arg )
   printf( "consumer: exit thread\n" );
   return 0;
 }
+
+void *monitor( void *arg )
+{
+  struct FreeQueueThread* f = (struct FreeQueueThread*)arg;
+  struct FreeQueue* instance = f->instance;
+  uint32_t channel_count = instance->channel_count;
+  uint32_t buffer_length = instance->buffer_length;
+  uint32_t length = 2000; //1764; 
+  printf( "monitor: [ buffer length is %d; channel count is %d ]\n", buffer_length, channel_count );
+  while ( f->busy ) {  
+    uint32_t current_read = atomic_load(instance->state + READ);
+    uint32_t current_write = atomic_load(instance->state + WRITE);
+
+    current_read = atomic_load(instance->state + READ);
+    current_write = atomic_load(instance->state + WRITE);
+
+    pthread_mutex_lock( &tasks_mutex );
+
+    printf( "monitor: [ current read: %d; current write: %d ]\n", current_read, current_write );
+
+    uint32_t read = _getAvailableRead(instance, current_read, current_write);
+    uint32_t write = _getAvailableWrite(instance, current_read, current_write);
+
+    printf( "monitor: [ available read: %d; available write: %d ]\n", read, write );
+
+//      printf( "mon: [ length is %d ]\n", length );
+    pthread_mutex_unlock( &tasks_mutex );
+    usleep( 850 * 1000 ); // 25fps
+  }  
+  printf( "monitor: exit thread\n" );
+  return 0;
+
+}
+
 int main( int argc, char* argv[] )
 {
-  memorydata.instance = nullptr;
-  memorydata.busy = 1;
+  memdata.instance = nullptr;
+  memdata.busy = 1;
   return CreateFreeQueueThreads();
 }
 

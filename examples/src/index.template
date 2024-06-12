@@ -13,14 +13,14 @@
     <script type="text/javascript" src="free-queue/free-queue.js"></script>
     
     <title>wasmFreeQueue test html page</title>
-    <nk-radio
-        slot="nk-radio"
-        data-field="settings-2"
-        data-services-path="webgpu"
-    ></nk-radio>
+
+    <audio id="audiostream" crossorigin="anonymous" preload="metadata" 
+        src="https://hermitage.hostingradio.ru/hermitage128.mp3">Ваш браузер не поддерживает элемент <code>audio</code>.
+    </audio>
+
     <style></style>
     <script type="module">
-    import nkRAdio from './nk-radio/index.mjs'
+// import nkRAdio from './nk-radio/index.mjs'
 	import initWasmFreeQueue from "./free-queue/free-queue.asm.js"
 	try {
 	    	window["Module"] = {};
@@ -32,13 +32,11 @@
 			const CreateFreeQueue = window["Module"].cwrap('CreateFreeQueue','number',[ 'number', 'number' ]);
 			const PrintQueueAddresses = window["Module"].cwrap('PrintQueueAddresses','',[ 'number' ]);
 			window["instance"] = GetFreeQueueThreads();
-			console.log( "instance: " + window["instance"] );
 			const bufferLengthPtr = GetFreeQueuePointers( window["instance"], "buffer_length" );
 			const channelCountPtr = GetFreeQueuePointers( window["instance"], "channel_count" );
 			const statePtr = GetFreeQueuePointers( window["instance"], "state" );
 			const channelDataPtr = GetFreeQueuePointers( window["instance"], "channel_data" );
 			const pointers = new Object();
-			console.log( "pointers: " + pointers );
 			pointers.memory = window["Module"].HEAPU8;
 			pointers.bufferLengthPointer = bufferLengthPtr;
 			pointers.channelCountPointer = channelCountPtr;
@@ -58,20 +56,19 @@
 	{
 		console.log( "exception: " + e );
 		throw( e );
-
 	}
     </script>
     <script type="text/javascript">
 	jQuery(document).ready(function () {
 		$('#startTest1').click(function() {
-			const CreateFreeQueueThreads = Module.cwrap('CreateFreeQueueThreads','number',[ '' ]);
+			const CreateFreeQueueThreads = window["Module"].cwrap('CreateFreeQueueThreads','number',[ '' ]);
 			const r = CreateFreeQueueThreads();
 			if ( r == 1 ) {
 				window.onFreeQueueInitialize();
 			}
 		});
 		$('#startTest2').click(function() {
-			const DestroyFreeQueueThreads = Module.cwrap('DestroyFreeQueueThreads','number',[ '' ]);
+			const DestroyFreeQueueThreads = window["Module"].cwrap('DestroyFreeQueueThreads','number',[ '' ]);
 			const r = DestroyFreeQueueThreads();
 			if ( r == 1 ) {
 				window["queue"] = undefined;
@@ -88,15 +85,29 @@
 		$('#startTest4').click(function() {
 			const PrintQueueInfo = window["Module"].cwrap('PrintQueueInfo','',[ 'number' ]);
 			const d = [2];
-			d[0] = new Float64Array(1764);
-			d[1] = new Float64Array(1764);
+			let bufferSize = window["samplerate"] / 25;
+			d[0] = new Float64Array(bufferSize);
+			d[1] = new Float64Array(bufferSize);
 			if ( window["queue"] != undefined ) {
-				const r = window["queue"].pull( d, 1764 );
+				const r = window["queue"].pull( d, bufferSize );
 				console.log( "pull: " + r );
 				console.log( "pull data: " + d );
 				window["queue"].printAvailableReadAndWrite();
 			}
 		});
+
+		$('#startTest5').click(function() {
+			if ( window["isPlaybackInProgress"] == false ) {
+				window.startplayback();
+			}
+		});
+
+		$('#startTest6').click(function() {
+			if ( window["isPlaybackInProgress"] == true ) {
+				window.stopplayback();
+			}
+		});
+
 	});
     </script>
 </head>
@@ -106,6 +117,8 @@
 	<button id="startTest2">DestroyThreads</button>
 	<button id="startTest3">PrintVarStack</button>
 	<button id="startTest4">PullData</button>
+	<button id="startTest5">StartPlayback</button>
+	<button id="startTest6">StopPlayback</button>
 </body>
 
 </html>
