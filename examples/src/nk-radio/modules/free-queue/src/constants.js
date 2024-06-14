@@ -1,6 +1,6 @@
 // eslint-disable-next-line react/wrap-multilines
 //TODO ============== WebAudio's render block size (in sample-frames) to default ==============
-export const RENDER_QUANTUM = 128;
+export const RENDER_QUANTUM = 2000;
 
 // The size multiplier for the batch processing frame size (in worker).
 export const KERNEL_LENGTH = 8;
@@ -11,7 +11,7 @@ export const FRAME_SIZE = KERNEL_LENGTH * RENDER_QUANTUM;
 // export const FRAME_SIZE = KERNEL_LENGTH * RENDER_QUANTUM;
 // The maximum size of two SharedArrayBuffers between Worker and
 // AudioWorkletProcessor.
-export const QUEUE_SIZE = 2048;
+export const QUEUE_SIZE = 100000;
 
 // WebGPU parallelization parameter
 export const WORKGROUP_SIZE = 4;
@@ -21,9 +21,9 @@ export const getConstant = (type) => {
     switch (type) {
     case 'emulator':
         constants = {
-            RENDER_QUANTUM: 16,
-            KERNEL_LENGTH: 2,
-            QUEUE_SIZE: 64,
+            RENDER_QUANTUM: 2000,
+            KERNEL_LENGTH: 8,
+            QUEUE_SIZE: 100000,
             WORKGROUP_SIZE: 4
         };
 

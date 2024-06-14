@@ -21,10 +21,9 @@
     <style></style>
 
     <script type="module">
-	import nkRAdio from './nk-radio/index.mjs'
 	import initWasmFreeQueue from "./free-queue/free-queue.asm.js"
 	try {
-	    	window["Module"] = {};
+		window["Module"] = {};
 		initWasmFreeQueue(window["Module"]);
 		window["onFreeQueueInitialize"] = () => {
 			const GetFreeQueueThreads = window["Module"].cwrap('GetFreeQueueThreads','number',[ '' ]);
@@ -59,6 +58,7 @@
 		throw( e );
 	}
     </script>
+
     <script type="text/javascript">
 	jQuery(document).ready(function () {
 		$('#startTest1').click(function() {

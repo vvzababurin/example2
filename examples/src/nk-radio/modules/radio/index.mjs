@@ -1,17 +1,9 @@
 import {FreeQueue, getConstant} from '../free-queue/index.mjs'
 import {createTestIR, fetchAudioFileToF32Array } from './ir-helper.js'
-const {QUEUE_SIZE} = getConstant('radio')
+const { RENDER_QUANTUM, QUEUE_SIZE } = getConstant('radio');
 import  Assets  from './assets.js'
 import { isEmpty } from '../isEmpty/index.mjs';
 const nkMemory = window.document.querySelector('nk-memory')
-
-
-// Create 2 FreeQueue instances with 4096 buffer length and 1 channel.
-const inputQueue = new FreeQueue(QUEUE_SIZE, 2);
-const outputQueue = new FreeQueue(QUEUE_SIZE, 2);
-
-// Create an atomic state for synchronization between Worker and AudioWorklet.
-const atomicState = new Int32Array(new SharedArrayBuffer(1 * Int32Array.BYTES_PER_ELEMENT));
 
 let audioContext = null;
 let worker = null;
@@ -132,16 +124,19 @@ const drawOscilloscope = () => {
 const ctx = async (CONFIG) => {
     if(!CONFIG.audio.ctx) {
         CONFIG.audio.ctx = new window.AudioContext;
-        console.log('sssssssssssssssssssssssssssssssssssss', new URL('../radio-processor.mjs', import.meta.url).pathname)
+        // console.log('sssssssssssssssssssssssssssssssssssss', new URL('../radio-processor.mjs', import.meta.url).pathname)
         await CONFIG.audio.ctx.audioWorklet.addModule(new URL('../free-queue/src/radio-processor.mjs', import.meta.url).pathname);
     }
     //
     CONFIG.audio.oscillatorNode = new OscillatorNode(CONFIG.audio.ctx);
+
+// Create an atomic state for synchronization between Worker and AudioWorklet.
+
     CONFIG.audio.processorNode = new AudioWorkletNode(CONFIG.audio.ctx, 'radio-processor', {
         processorOptions: {
-            inputQueue,
-            outputQueue,
-            atomicState
+            undefined,
+            undefined,
+            undefined
         }
     });
 
@@ -292,7 +287,7 @@ export default async () => {
                     } else {
                         CONFIG.html.button.start.textContent = 'Stop Audio'
                         await ctx(CONFIG)
-                        await initializeWorkerIfNecessary(self);
+                        // await initializeWorkerIfNecessary(self);
                         await newAudio(CONFIG)
                         drawOscilloscope()
                     }

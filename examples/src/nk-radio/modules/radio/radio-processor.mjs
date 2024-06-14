@@ -4,58 +4,41 @@ const { RENDER_QUANTUM, FRAME_SIZE } = getConstant('radio');
 
 const ExpectedPrimingCount = FRAME_SIZE / RENDER_QUANTUM;
 
-/**
- * A simple AudioWorkletProcessor node.
- *
- * @class BasicProcessor
- * @extends AudioWorkletProcessor
- */
-class BasicProcessor extends AudioWorkletProcessor {
-    /**
-     * Constructor to initialize, input and output FreeQueue instances
-     * and atomicState to synchronise Worker with AudioWorklet
-     * @param {Object} options AudioWorkletProcessor options
-     *    to initialize inputQueue, outputQueue and atomicState
-     */
 
-    /*
+class BasicProcessor extends AudioWorkletProcessor {
+
     constructor(options) {
         super();
+/*
         this.inputQueue = options.processorOptions.inputQueue;
         this.outputQueue = options.processorOptions.outputQueue;
         this.atomicState = options.processorOptions.atomicState;
         Object.setPrototypeOf(this.inputQueue, FreeQueue.prototype);
         Object.setPrototypeOf(this.outputQueue, FreeQueue.prototype);
-
+*/
         this.primingCounter = 0;
     }
-    */
 
-    /**
-     * The AudioWorkletProcessor's isochronous callback.
-     * @param {Array<Float32Array>>} inputs
-     * @param {Array<Float32Array>>} outputs
-     * @returns {boolean}
-     */
+
     process(inputs, outputs, parameters) {
 
-        let inputBuffer = inputs.inputBuffer;
-        window["samplerate"] = inputBuffer.sampleRate;
-		let bufferSize = window["samplerate"] / 25;
-		window["channels"] = inputBuffer.numberOfChannels;
-		const dataArray = [ window["channels"] ];
-		for ( let i = 0; i < window["channels"]; i++ ) {
-			dataArray[i] = new Float64Array(bufferSize);
-		}
-		for ( let i = 0; i < bufferSize; i++ ) {
-			for ( let j = 0; j < window["channels"]; j++ ) {
-				dataArray[j][i] = inputBuffer.getChannelData(j)[i];
+			let inputBuffer = inputs.inputBuffer;
+			window["samplerate"] = inputBuffer.sampleRate;
+			let bufferSize = window["samplerate"] / 25;
+			window["channels"] = inputBuffer.numberOfChannels;
+			const dataArray = [ window["channels"] ];
+			for ( let i = 0; i < window["channels"]; i++ ) {
+				dataArray[i] = new Float64Array(bufferSize);
 			}
-		}
-		if ( window["queue"] != undefined ) {
-			const r = window["queue"].push( dataArray, bufferSize );
-			window["queue"].printAvailableReadAndWrite();
-		}
+			for ( let i = 0; i < bufferSize; i++ ) {
+				for ( let j = 0; j < window["channels"]; j++ ) {
+					dataArray[j][i] = inputBuffer.getChannelData(j)[i];
+				}
+			}
+			if ( window["queue"] != undefined ) {
+				const r = window["queue"].push( dataArray, bufferSize );
+				window["queue"].printAvailableReadAndWrite();
+			}
 
 /*
         const input = inputs[0];
