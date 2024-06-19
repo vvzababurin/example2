@@ -1,45 +1,50 @@
-
 try {
     window["isPlaybackInProgress"] = false;
 
     window["startplayback"] = async function()
     {
 		window["isPlaybackInProgress"] = true;
+
 		if (window["audioCtx"] == undefined) {
 			window["audioCtx"] = new (window.AudioContext || window.webkitAudioContext)();
-        }
-
-        const audioSrc = "https://hermitage.hostingradio.ru/hermitage128.mp3";
-
-        $("#audiostream").attr("src", audioSrc);
-        window["audioElement"] = $("#audiostream")[0];
-
-        if (window["audioSrc"] == undefined) {
+		}
+	
+		const audioSrc = "https://hermitage.hostingradio.ru/hermitage128.mp3";
+	
+		$("#audiostream").attr("src", audioSrc);
+		window["audioElement"] = $("#audiostream")[0];
+	
+		if (window["audioSrc"] == undefined) {
 			window["audioSrc"] = window["audioCtx"].createMediaElementSource(window["audioElement"]);
-        }
-        if (window["audioSrc"]) {
-			window["audioSrc"].connect(window["audioCtx"].destination);
-        }
-        const channels = 2;
-
-		if (window["audioWorklet"] == undefined) {
-			window["audioWorklet"] = new AudioWorkletNode(window["audioCtx"], "radio-processor");
 		}
 
-		window["audioCtx"].audioWorklet.addModule("./radio-processor.mjs");
+		if (window["audioSrc"]) {
+			window["audioSrc"].connect(window["audioCtx"].destination);
+		}
 
-		console.log("Created...");
-
-
-			if (window["audioWorklet"]) {
-				window["audioWorklet"].connect(window["audioCtx"].destination);
-			}
-
-			window["audioElement"].play();
-
-
+		await window["audioCtx"].audioWorklet.addModule("./nk-radio/modules/radio/radio-processor.mjs");
+	
+		if (window["audioWorklet"] == undefined) {
+			window["audioWorklet"] = new AudioWorkletNode(window["audioCtx"], "radio-processor", {
+				processorOptions: {
+					instance: window["instance"],
+					queue: window["queue"]
+				},
+				numberOfInputs: 0,
+				numberOfOutputs: 5,
+				outputChannelCount: [2, 2, 2, 2, 2],
+				channelCount: 2,
+				channelCountMode: "max",
+				channelInterpretation: "speakers"
+			});
+		}
+	
+		if (window["audioWorklet"]) {
+			window["audioWorklet"].connect(window["audioCtx"].destination);
+		}
 		
-
+		window["audioElement"].play();
+		
 /*
         window["audioRec"].onaudioprocess = function(e) {
 			let inputBuffer = e.inputBuffer;

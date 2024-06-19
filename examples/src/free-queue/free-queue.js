@@ -27,7 +27,7 @@ class FreeQueue {
     /** @type {number} A shared index for writing into the queue. (producer) */
     WRITE: 1,  
   }
-  
+
   /**
    * FreeQueue constructor. A shared buffer created by this constuctor
    * will be shared between two threads.
@@ -35,7 +35,7 @@ class FreeQueue {
    * @param {number} size Frame buffer length.
    * @param {number} channelCount Total channel count.
    */
-  constructor(size, channelCount = 1) {
+  constructor(size, channelCount) {
     this.states = new Uint32Array(
       new SharedArrayBuffer(
         Object.keys(this.States).length * Uint32Array.BYTES_PER_ELEMENT
@@ -58,6 +58,24 @@ class FreeQueue {
         )
       );
     }
+  }
+
+  static fromSource(queueSource)
+  {
+    const queue = new FreeQueue(0, 0);
+
+    const bufferLength = queueSource.bufferLength;
+    const channelCount = queueSource.channelCount;
+
+    const states = queueSource.states;
+    const channelData = queueSource.channelData;
+    
+    queue.bufferLength = bufferLength;
+    queue.channelCount = channelCount;
+    queue.states = states;
+    queue.channelData = channelData;
+
+    return queue;
   }
 
   /**
@@ -234,4 +252,4 @@ class FreeQueue {
   }
 }
 
-// export default FreeQueue;
+export default FreeQueue;

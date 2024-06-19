@@ -1,92 +1,66 @@
-import FreeQueue from './free-queue.js';
-import { getConstant} from './constants.js';
-const { RENDER_QUANTUM, FRAME_SIZE } = getConstant('radio');
+import FreeQueue from "../../../free-queue/free-queue.js";
 
-const ExpectedPrimingCount = FRAME_SIZE / RENDER_QUANTUM;
-
-
-class BasicProcessor extends AudioWorkletProcessor {
-
+class WorkletBasicProcessor extends AudioWorkletProcessor 
+{
     constructor(options) {
-        super();
-/*
-        this.inputQueue = options.processorOptions.inputQueue;
-        this.outputQueue = options.processorOptions.outputQueue;
-        this.atomicState = options.processorOptions.atomicState;
-        Object.setPrototypeOf(this.inputQueue, FreeQueue.prototype);
-        Object.setPrototypeOf(this.outputQueue, FreeQueue.prototype);
-*/
-        this.primingCounter = 0;
+		super(); 
+		this.queue = FreeQueue.fromSource( options.processorOptions.queue );
+		this.instance = options.processorOptions.instance;
+		this.channelCount = options.channelCount;
+		this.port.onmessage = (e) => {
+		    console.log( "!!!!!!!" + e.data );
+		}
     }
+	
+    process(inputs, outputs, _parameters) 
+	{
+		// let inputBuffer = inputs[0];
+
+		// console.log( "queue: ", this.queue );
+		// console.log( "instance: ", this.instance );
+
+		// console.log( "qchannels: ", this.queue.channelCount );
+
+		// console.log( "outputs channelCount: ", this.channelCount );
+
+		//console.log( "outputs: ", outputs.length );
+		//console.log( "inputs: ", inputs.length );
 
 
-    process(inputs, outputs, parameters) {
+		////////////////////////////////////////////////////////////////////////////////////////
+		// inputs count...
+		////////////////////////////////////////////////////////////////////////////////////////
+		for ( let i = 0; i < outputs.length; i++ ) {
 
-			let inputBuffer = inputs.inputBuffer;
-			window["samplerate"] = inputBuffer.sampleRate;
-			let bufferSize = window["samplerate"] / 25;
-			window["channels"] = inputBuffer.numberOfChannels;
-			const dataArray = [ window["channels"] ];
-			for ( let i = 0; i < window["channels"]; i++ ) {
-				dataArray[i] = new Float64Array(bufferSize);
-			}
-			for ( let i = 0; i < bufferSize; i++ ) {
-				for ( let j = 0; j < window["channels"]; j++ ) {
-					dataArray[j][i] = inputBuffer.getChannelData(j)[i];
+			let bufferSize = 0;
+
+			let channels = outputs[i].length;
+			let dataArray = [ channels ];
+
+			////////////////////////////////////////////////////////////////////////////////////////
+			// channels count...
+			////////////////////////////////////////////////////////////////////////////////////////
+			for ( let j = 0; j < channels; j++ ) {  
+				bufferSize = outputs[i][j].length;
+				dataArray[j] = new Float64Array(bufferSize);
+				for ( let k = 0; k < bufferSize; k++ )
+				{
+					dataArray[j][k] = outputs[i][j][k];
 				}
 			}
-			if ( window["queue"] != undefined ) {
-				const r = window["queue"].push( dataArray, bufferSize );
-				window["queue"].printAvailableReadAndWrite();
+
+			if ( this.queue != undefined ) {
+				const r = this.queue.push( dataArray, bufferSize );
+				//console.log( "queue.push: " + ( r == true ) ? "true" : "false" );
+				//this.queue.printAvailableReadAndWrite();
 			}
 
-/*
-        const input = inputs[0];
-        const output = outputs[0];
+		}
 
-        // console.log('🟢 ==== processor ==== 🟢',{
-        //     input: input,
-        //     output: output,
-        //     parameters: parameters
-        // })
-        // The first |ExpectedPrimingCount| number of callbacks won't get any
-        // data from the queue because the it's empty. This check is not perfect;
-        // waking up the worker can be slow and priming N callbacks might not be
-        // enough.
+		return true;
+	}
 
-
-        console.log("primingCounter: " + this.primingCounter);
-        console.log("ExpectedPrimingCount: " + ExpectedPrimingCount);
-
-        if (this.primingCounter > ExpectedPrimingCount) {
-            const didPull = this.outputQueue.pull(output, RENDER_QUANTUM);
-            if (!didPull) {
-                console.log("pull: false");
-                return false;
-            }
-        } else {
-            console.log("pull: true");
-            this.primingCounter++;
-        }
-
-        const didPush = this.inputQueue.push(input, RENDER_QUANTUM);
-        if (!didPush) {
-            console.log("push: false");
-            return false;
-        }
-
-        console.log("push: true");
-
-        // Notify worker.js if `inputQueue` has enough data to perform the batch
-        // processing of FRAME_SIZE.
-        if (this.inputQueue.isFrameAvailable(FRAME_SIZE)) {
-            Atomics.store(this.atomicState, 0, 1);
-            Atomics.notify(this.atomicState, 0);
-        }
-*/
-
-        return true;
-    }
 }
 
-registerProcessor('radio-processor', BasicProcessor);
+
+registerProcessor("radio-processor", WorkletBasicProcessor);
