@@ -6,13 +6,18 @@ class WorkletBasicProcessor extends AudioWorkletProcessor
 		super(); 
 		this.queue = FreeQueue.fromSource( options.processorOptions.queue );
 		this.instance = options.processorOptions.instance;
+		this.waveform = options.processorOptions.waveform;
 		this.channelCount = options.channelCount;
-		this.port.onmessage = (e) => {
-		    console.log( "!!!!!!!" + e.data );
-		}
+/*
+		this.context = options.processorOptions.context;
+		
+		this.context.decodeAudioData(options.arrayBuffer).then(function (buffer) {
+			console.log( buffer );
+		}.bind(this));
+*/
     }
 	
-    process(inputs, outputs, _parameters) 
+    process(_inputs, outputs, _parameters) 
 	{
 		// let inputBuffer = inputs[0];
 
@@ -22,8 +27,9 @@ class WorkletBasicProcessor extends AudioWorkletProcessor
 		// console.log( "qchannels: ", this.queue.channelCount );
 
 		// console.log( "outputs channelCount: ", this.channelCount );
+	
 
-		//console.log( "outputs: ", outputs.length );
+		//console.log( "waveform: ", this.waveform );
 		//console.log( "inputs: ", inputs.length );
 
 
@@ -43,15 +49,14 @@ class WorkletBasicProcessor extends AudioWorkletProcessor
 			for ( let j = 0; j < channels; j++ ) {  
 				bufferSize = outputs[i][j].length;
 				dataArray[j] = new Float64Array(bufferSize);
-				for ( let k = 0; k < bufferSize; k++ )
-				{
-					dataArray[j][k] = outputs[i][j][k];
+				for ( let k = 0; k < bufferSize; k++ ) {
+					dataArray[j][k] = 0.0; // this.waveform[j][k];
 				}
 			}
 
 			if ( this.queue != undefined ) {
 				const r = this.queue.push( dataArray, bufferSize );
-				//console.log( "queue.push: " + ( r == true ) ? "true" : "false" );
+				console.log( "queue.push: " + ( r == true ) ? "true" : "false" );
 				//this.queue.printAvailableReadAndWrite();
 			}
 

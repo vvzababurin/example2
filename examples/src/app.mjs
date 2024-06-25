@@ -8,7 +8,7 @@ try {
 		if (window["audioCtx"] == undefined) {
 			window["audioCtx"] = new (window.AudioContext || window.webkitAudioContext)();
 		}
-	
+		 
 		const audioSrc = "https://hermitage.hostingradio.ru/hermitage128.mp3";
 	
 		$("#audiostream").attr("src", audioSrc);
@@ -38,8 +38,19 @@ try {
 				channelInterpretation: "speakers"
 			});
 		}
-	
+
 		if (window["audioWorklet"]) {
+
+			window["audioAnalyser"] = window["audioCtx"].createAnalyser();
+			if ( window["audioAnalyser"] ) {
+				window["waveform"] = new Float32Array( window["audioAnalyser"].frequencyBinCount );
+				if ( window["waveform"] ) {
+					window["audioAnalyser"].fftSize = 2048;
+					window["audioAnalyser"].getFloatTimeDomainData( window["waveform"] );
+				}
+			}
+	
+			window["audioAnalyser"].connect(window["audioCtx"].destination);
 			window["audioWorklet"].connect(window["audioCtx"].destination);
 		}
 		
@@ -70,14 +81,24 @@ try {
         
     }
 
-    window["stopplayback"] = function() {
+    window["stopplayback"] = async function() {
 		window["isPlaybackInProgress"] = false;
 		window["render-buffer"] = undefined;
+		window["audioAnalyser"] = undefined;
 		window["audioElement"].pause();
 		// window["audioRec"].onaudioprocess = undefined;
     }
 
 
+	var draw = function () {
+		requestAnimationFrame(draw);
+		if ( window["audioAnalyser"] != undefined ) {
+			window["audioAnalyser"].getFloatTimeDomainData( window["waveform"] );
+			console.log( window["waveform"] );
+		}
+	}
+
+	draw();
 } 
 catch( e ) 
 {
