@@ -30,8 +30,9 @@ class WorkletBasicProcessor extends AudioWorkletProcessor
 	
 
 		//console.log( "waveform: ", this.waveform );
+		
 		//console.log( "inputs: ", inputs.length );
-		//console.log( "input[0]: ", inputs[0].length );
+		//console.log( "outputs: " , 0 );
 
 
 		////////////////////////////////////////////////////////////////////////////////////////

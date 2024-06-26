@@ -1,16 +1,18 @@
-import { FreeQueue } from './free-queue.js';
-import { getConstant } from './constants.js';
-import GPUProcessor from './gpu-processor.js';
+//import { FreeQueue } from './free-queue.js';
+//import { getConstant } from './constants.js';
+//import GPUProcessor from './gpu-processor.js';
 
-const { FRAME_SIZE }  = getConstant(self.name.toLowerCase());
+// const { FRAME_SIZE }  = getConstant(self.name.toLowerCase());
 
+const FRAME_SIZE = 2048;
+QUEUE_SIZE
 let inputQueue = null;
 let outputQueue = null;
-let atomicState = null;
-let gpuProcessor = null;
+//let atomicState = null;
+//let gpuProcessor = null;
 let inputBuffer = null;
 let outputBuffer = null
-let irArray = null;
+//let irArray = null;
 let sampleRate = null;
 
 // Performance metrics
@@ -23,12 +25,12 @@ let runningAverageFactor = 1;
 
 // processing.
 const initialize = (messageDataFromMainThread) => {
-    ({inputQueue, outputQueue, atomicState, irArray, sampleRate} = messageDataFromMainThread);
-    Object.setPrototypeOf(inputQueue, FreeQueue.prototype);
-    Object.setPrototypeOf(outputQueue, FreeQueue.prototype);
+    ( { inputQueue, outputQueue, sampleRate } = messageDataFromMainThread );
+//    Object.setPrototypeOf(inputQueue, FreeQueue.prototype);
+//    Object.setPrototypeOf(outputQueue, FreeQueue.prototype);
 
     // A local buffer to store data pulled out from `inputQueue`.
-    inputBuffer = [new Float64Array(FRAME_SIZE), new Float64Array(FRAME_SIZE)]
+//    inputBuffer = [new Float64Array(FRAME_SIZE), new Float64Array(FRAME_SIZE)]
     //TODO Подключить gpu processor
     // Create an instance of GPUProcessor and provide an IR array.
     // gpuProcessor = new GPUProcessor();
@@ -44,14 +46,16 @@ const initialize = (messageDataFromMainThread) => {
 
 
 const process = () => {
-    const data = inputQueue.pull(inputBuffer, FRAME_SIZE)
-    if (!data) {
-        console.error('[worker.js] Pulling from inputQueue failed.');
-        return;
-    }
+//    const data = inputQueue.pull(inputBuffer, FRAME_SIZE)
+//    if (!data) {
+//        console.error('[worker.js] Pulling from inputQueue failed.');
+//        return;
+//    }
+
+    console.log('[worker.sync.js] _____________________________');
 
     // 1. Bypassing
-    outputBuffer = inputBuffer;
+//    outputBuffer = inputBuffer;
     // 2. Bypass via GPU.
     // const dataGPU  = await gpuProcessor.processBypass([inputBuffer[0]]);
     // outputBuffer[0] = dataGPU
@@ -61,10 +65,10 @@ const process = () => {
     // outputBuffer[1] = dataGPU
     // outputBuffer[0] = dataGPU
 
-    if (!outputQueue.push(outputBuffer, FRAME_SIZE)) {
-        console.error('[worker.js] Pushing to outputQueue failed.');
-        return;
-    }
+//    if (!outputQueue.push(outputBuffer, FRAME_SIZE)) {
+//        console.error('[worker.js] Pushing to outputQueue failed.');
+//        return;
+//    }
 };
 
 /**
@@ -81,7 +85,7 @@ self.onmessage = (msg) => {
         self.postMessage({
             status: true
         });
-
+/*
         // eslint-disable-next-line no-undef
         while (Atomics.wait(atomicState, 0,0) === 'ok') {
             const processStart = performance.now();
@@ -106,9 +110,12 @@ self.onmessage = (msg) => {
             }
 
             // eslint-disable-next-line no-undef
-            Atomics.store(atomicState, 0, 0);
+           // Atomics.store(atomicState, 0, 0);
         }
+*/           
     } else {
+
+        console.log( "data.type: " + msg.data.type );
         console.log('!!!!!!!!!!!!!!!! Неизвестно что !!!!!!!!!!!!!!')
     }
 };
