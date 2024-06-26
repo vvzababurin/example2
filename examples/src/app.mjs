@@ -8,7 +8,11 @@ try {
 		if (window["audioCtx"] == undefined) {
 			window["audioCtx"] = new (window.AudioContext || window.webkitAudioContext)();
 		}
+
+		await window["audioCtx"].audioWorklet.addModule("./nk-radio/modules/radio/radio-processor.mjs");
 		 
+		window["audioCtx"].suspend();
+
 		const audioSrc = "https://hermitage.hostingradio.ru/hermitage128.mp3";
 	
 		$("#audiostream").attr("src", audioSrc);
@@ -21,8 +25,6 @@ try {
 		if (window["audioSrc"]) {
 			window["audioSrc"].connect(window["audioCtx"].destination);
 		}
-
-		await window["audioCtx"].audioWorklet.addModule("./nk-radio/modules/radio/radio-processor.mjs");
 	
 		if (window["audioWorklet"] == undefined) {
 			window["audioWorklet"] = new AudioWorkletNode(window["audioCtx"], "radio-processor", {
@@ -30,30 +32,43 @@ try {
 					instance: window["instance"],
 					queue: window["queue"]
 				},
-				numberOfInputs: 0,
-				numberOfOutputs: 5,
-				outputChannelCount: [2, 2, 2, 2, 2],
-				channelCount: 2,
-				channelCountMode: "max",
-				channelInterpretation: "speakers"
+				//numberOfInputs: 1,
+				//numberOfOutputs: 5,
+				//outputChannelCount: [2, 2, 2, 2, 2],
+				//channelCount: 2,
+				//channelCountMode: "max",
+				//channelInterpretation: "speakers"
 			});
+			//window["audioWorklet"].connect(window["audioCtx"].destination);
 		}
 
+		if (window["worker"] == undefined) {
+			window["worker"] = new Worker(new URL("./free-queue/free-queue.asm.worker.js", import.meta.url), {
+            	name: 'Radio',
+        	    type: 'module',
+    	    });
+		}
+
+		window["worker"].onerror = (event) => {
+			console.log('[main.js] Error from worker.js: ', event);
+		};
+	
 		if (window["audioWorklet"]) {
 
+			window["audioGain"] = window["audioCtx"].createGain();
 			window["audioAnalyser"] = window["audioCtx"].createAnalyser();
+
 			if ( window["audioAnalyser"] ) {
-				window["waveform"] = new Float32Array( window["audioAnalyser"].frequencyBinCount );
+				if ( window["waveform"] == undefined ) window["waveform"] = new Float32Array( window["audioAnalyser"].frequencyBinCount );
 				if ( window["waveform"] ) {
-					window["audioAnalyser"].fftSize = 2048;
+//					window["audioAnalyser"].fftSize = 1024;
 					window["audioAnalyser"].getFloatTimeDomainData( window["waveform"] );
 				}
 			}
 	
-			window["audioAnalyser"].connect(window["audioCtx"].destination);
-			window["audioWorklet"].connect(window["audioCtx"].destination);
+			window["audioGain"].connect( window["audioWorklet"] ).connect( window["audioAnalyser"] ).connect(window["audioCtx"].destination);
 		}
-		
+		window["audioCtx"].resume();
 		window["audioElement"].play();
 		
 /*
@@ -90,10 +105,10 @@ try {
     }
 
 
-	var draw = function () {
+	var draw = async function () {
 		requestAnimationFrame(draw);
 		if ( window["audioAnalyser"] != undefined ) {
-			window["audioAnalyser"].getFloatTimeDomainData( window["waveform"] );
+			await window["audioAnalyser"].getFloatTimeDomainData( window["waveform"] );
 			console.log( window["waveform"] );
 		}
 	}

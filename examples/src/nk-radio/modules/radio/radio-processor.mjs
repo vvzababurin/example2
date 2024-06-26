@@ -17,7 +17,7 @@ class WorkletBasicProcessor extends AudioWorkletProcessor
 */
     }
 	
-    process(_inputs, outputs, _parameters) 
+    process(inputs, outputs, _parameters) 
 	{
 		// let inputBuffer = inputs[0];
 
@@ -31,6 +31,7 @@ class WorkletBasicProcessor extends AudioWorkletProcessor
 
 		//console.log( "waveform: ", this.waveform );
 		//console.log( "inputs: ", inputs.length );
+		//console.log( "input[0]: ", inputs[0].length );
 
 
 		////////////////////////////////////////////////////////////////////////////////////////
@@ -55,8 +56,8 @@ class WorkletBasicProcessor extends AudioWorkletProcessor
 			}
 
 			if ( this.queue != undefined ) {
-				const r = this.queue.push( dataArray, bufferSize );
-				console.log( "queue.push: " + ( r == true ) ? "true" : "false" );
+				// const r = this.queue.push( dataArray, bufferSize );
+				//console.log( "queue.push: " + ( r == true ) ? "true" : "false" );
 				//this.queue.printAvailableReadAndWrite();
 			}
 
