@@ -9,7 +9,7 @@ try {
 			window["audioCtx"] = new (window.AudioContext || window.webkitAudioContext)();
 		}
 
-//		await window["audioCtx"].audioWorklet.addModule("./nk-radio/modules/radio/radio-processor.mjs");
+		await window["audioCtx"].audioWorklet.addModule("./nk-radio/modules/radio/radio-processor.mjs");
 		 
 		window["audioCtx"].suspend();
 
@@ -26,6 +26,7 @@ try {
 			window["audioSrc"].connect(window["audioCtx"].destination);
 		}
 	
+/*		
 		if (window["audioRec"] == undefined) {
 			window["audioRec"] = window["audioCtx"].createScriptProcessor(2048, 2, 2);
 		}		
@@ -62,29 +63,33 @@ try {
 		window["audioSrc"].connect(window["audioRec"]);
 		window["audioRec"].connect(window["audioCtx"].destination);
 
+
 		window["audioCtx"].resume();
 		window["audioElement"].play();
+*/
 
-/*
-		if (window["audioWorklet"] == undefined) {
+		if (window["audioWorklet"] == undefined) 
+		{
 			window["audioWorklet"] = new AudioWorkletNode(window["audioCtx"], "radio-processor", {
 				processorOptions: {
-					undefined,
-					undefined,
-					undefined
+					queue: window["queue"],
+					instance: window["instance"],
 				},
-				//numberOfInputs: 1,
-				//numberOfOutputs: 5,
-				//outputChannelCount: [2, 2, 2, 2, 2],
-				//channelCount: 2,
-				//channelCountMode: "max",
-				//channelInterpretation: "speakers"
+				numberOfInputs: 1,
+				numberOfOutputs: 1,
+				outputChannelCount: [2],
+				channelCount: 2,
+				channelCountMode: "max",
+				channelInterpretation: "speakers"
 			});
-			//window["audioWorklet"].connect(window["audioCtx"].destination);
+			
+			window["audioWorklet"].connect(window["audioCtx"].destination);
 		}
 
-		if (window["worker"] == undefined) {
-
+		window["audioSrc"].connect(window["audioWorklet"]);
+/*
+		if (window["worker"] == undefined) 
+		{
 			window["worker"] = new Worker("./nk-radio/modules/radio/radio-worker.sync.mjs", {
             	name: "internet - radio",
         	    type: "module",
@@ -144,32 +149,10 @@ try {
 	
 			window["audioGain"].connect( window["audioWorklet"] ).connect( window["audioAnalyser"] ).connect(window["audioCtx"].destination);
 		}
+*/			
 		window["audioCtx"].resume();
 		window["audioElement"].play();
-*/		
-/*
-        window["audioRec"].onaudioprocess = function(e) {
-			let inputBuffer = e.inputBuffer;
-			window["samplerate"] = inputBuffer.sampleRate;
-			let bufferSize = window["samplerate"] / 25;
-			window["channels"] = inputBuffer.numberOfChannels;
-			const dataArray = [ window["channels"] ];
-			for ( let i = 0; i < window["channels"]; i++ ) {
-				dataArray[i] = new Float64Array(bufferSize);
-			}
-			for ( let i = 0; i < bufferSize; i++ ) {
-				for ( let j = 0; j < window["channels"]; j++ ) {
-					dataArray[j][i] = inputBuffer.getChannelData(j)[i];
-				}
-			}
-			if ( window["queue"] != undefined ) {
-				const r = window["queue"].push( dataArray, bufferSize );
-				window["queue"].printAvailableReadAndWrite();
-			}
-		};
-*/
-
-        
+		
     }
 
     window["stopplayback"] = async function() {
@@ -177,7 +160,7 @@ try {
 		window["render-buffer"] = undefined;
 		window["audioAnalyser"] = undefined;
 		window["audioElement"].pause();
-		window["audioRec"].onaudioprocess = undefined;
+		//window["audioRec"].onaudioprocess = undefined;
     }
 
 	/*

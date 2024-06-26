@@ -4,10 +4,14 @@ class WorkletBasicProcessor extends AudioWorkletProcessor
 {
     constructor(options) {
 		super(); 
-		this.queue = FreeQueue.fromSource( options.processorOptions.queue );
+		//this.queue = FreeQueue.fromSource( options.processorOptions.queue );
+		//this.queue = FreeQueue.fromSource( options.processorOptions.queue );
+
+		this.queue = Object.setPrototypeOf(options.processorOptions.queue, FreeQueue.prototype);
 		this.instance = options.processorOptions.instance;
-		this.waveform = options.processorOptions.waveform;
-		this.channelCount = options.channelCount;
+
+		//this.waveform = options.processorOptions.waveform;
+		//this.channelCount = options.channelCount;
 /*
 		this.context = options.processorOptions.context;
 		
@@ -17,16 +21,15 @@ class WorkletBasicProcessor extends AudioWorkletProcessor
 */
     }
 	
-    process(inputs, outputs, _parameters) 
+    process(inputs, outputs, parameters) 
 	{
 		// let inputBuffer = inputs[0];
 
 		// console.log( "queue: ", this.queue );
 		// console.log( "instance: ", this.instance );
 
-		// console.log( "qchannels: ", this.queue.channelCount );
-
-		// console.log( "outputs channelCount: ", this.channelCount );
+		//console.log( "inputs: ", inputs[0][0] );
+		//console.log( "outputs: ", outputs[0][0] );
 	
 
 		//console.log( "waveform: ", this.waveform );
@@ -38,28 +41,29 @@ class WorkletBasicProcessor extends AudioWorkletProcessor
 		////////////////////////////////////////////////////////////////////////////////////////
 		// inputs count...
 		////////////////////////////////////////////////////////////////////////////////////////
-		for ( let i = 0; i < outputs.length; i++ ) {
+		for ( let i = 0; i < inputs.length; i++ ) {
 
 			let bufferSize = 0;
 
-			let channels = outputs[i].length;
+			let channels = inputs[i].length;
 			let dataArray = [ channels ];
 
 			////////////////////////////////////////////////////////////////////////////////////////
 			// channels count...
 			////////////////////////////////////////////////////////////////////////////////////////
+			
 			for ( let j = 0; j < channels; j++ ) {  
-				bufferSize = outputs[i][j].length;
+				bufferSize = inputs[i][j].length;
 				dataArray[j] = new Float64Array(bufferSize);
 				for ( let k = 0; k < bufferSize; k++ ) {
-					dataArray[j][k] = 0.0; // this.waveform[j][k];
+					dataArray[j][k] = inputs[i][j][k];
 				}
 			}
 
 			if ( this.queue != undefined ) {
-				// const r = this.queue.push( dataArray, bufferSize );
-				//console.log( "queue.push: " + ( r == true ) ? "true" : "false" );
-				//this.queue.printAvailableReadAndWrite();
+				const r = this.queue.push( dataArray, bufferSize );
+				console.log( "processor: queue.push [ " + ( ( r == true ) ? "true" : "false" ) + " ]" );
+				this.queue.printAvailableReadAndWrite();
 			}
 
 		}
