@@ -46,12 +46,14 @@ class WorkletBasicProcessor extends AudioWorkletProcessor
 			let bufferSize = 0;
 
 			let channels = inputs[i].length;
+			if ( channels == 0 ) return false;
+
 			let dataArray = [ channels ];
 
 			////////////////////////////////////////////////////////////////////////////////////////
 			// channels count...
 			////////////////////////////////////////////////////////////////////////////////////////
-			
+
 			for ( let j = 0; j < channels; j++ ) {  
 				bufferSize = inputs[i][j].length;
 				dataArray[j] = new Float64Array(bufferSize);
@@ -61,6 +63,7 @@ class WorkletBasicProcessor extends AudioWorkletProcessor
 			}
 
 			if ( this.queue != undefined ) {
+				console.log( dataArray );
 				const r = this.queue.push( dataArray, bufferSize );
 				console.log( "processor: queue.push [ " + ( ( r == true ) ? "true" : "false" ) + " ]" );
 				this.queue.printAvailableReadAndWrite();
