@@ -46,10 +46,6 @@ try {
 				dataArray[i] = new Float64Array(bufferSize);
 			}
 
-
-			//console.log( inputBuffer.getChannelData(0) );
-			//console.log( inputBuffer.getChannelData(0).length );
-
 			for ( let i = 0; i < bufferSize; i++ ) {
 				for ( let j = 0; j < window["channels"]; j++ ) {
 					dataArray[j][i] = inputBuffer.getChannelData(j)[i];
@@ -57,7 +53,6 @@ try {
 			}
 
 			if ( window["queue"] != undefined ) {
-				// console.log( dataArray );
 				const r = window["queue"].push( dataArray, bufferSize );
 				console.log( "queue.push: " + (( r == true ) ? "true" : "false") );
 				window["queue"].printAvailableReadAndWrite();
