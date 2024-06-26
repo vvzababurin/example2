@@ -310,7 +310,7 @@ void *consumer( void *arg )
   struct FreeQueue* instance = f->instance;
   uint32_t channel_count = instance->channel_count;
   uint32_t buffer_length = instance->buffer_length;
-  uint32_t length = 1764;
+  uint32_t length = 2000;
   printf( "consumer: [ buffer length is %d; channel count is %d ]\n", buffer_length, channel_count );
   while ( f->busy ) 
   {
@@ -323,7 +323,7 @@ void *consumer( void *arg )
     }    
     uint32_t current_read = atomic_load(instance->state + READ);
     uint32_t current_write = atomic_load(instance->state + WRITE);
-    while( _getAvailableRead(instance, current_read, current_write) > 0 && f->busy ) {
+    while( _getAvailableRead(instance, current_read, current_write) > length && f->busy ) {
       current_read = atomic_load(instance->state + READ);
       current_write = atomic_load(instance->state + WRITE);
       pthread_mutex_lock( &tasks_mutex );
@@ -331,12 +331,12 @@ void *consumer( void *arg )
       ////////////////////////////////////////////////////////////////////////////////////////
       uint32_t availRead = _getAvailableRead(instance, current_read, current_write);
       if ( availRead > 0 && availRead < length ) length = availRead;
-      else length = 1764;
+      else length = 2000;
       bool rc = FreeQueuePull(instance, output, length);
       printf( "FreeQueuePull: %s\n", ( rc == true ) ? "true" : "false" );
       ////////////////////////////////////////////////////////////////////////////////////////
       pthread_mutex_unlock( &tasks_mutex );
-      usleep( 120 * 1000 ); // 120ms 3fps
+      usleep( 850 * 1000 ); // 850ms 25fps
     }
     for (int i = 0; i < channel_count; i++) free( output[i] );
     free( output );
@@ -362,7 +362,7 @@ void *monitor( void *arg )
 
     pthread_mutex_lock( &tasks_mutex );
 
-    printf( "monitor: [ current read: %d; current write: %d ]\n", current_read, current_write );
+    // printf( "monitor: [ current read: %d; current write: %d ]\n", current_read, current_write );
 
     uint32_t read = _getAvailableRead(instance, current_read, current_write);
     uint32_t write = _getAvailableWrite(instance, current_read, current_write);

@@ -27,15 +27,17 @@ try {
 		}
 	
 		if (window["audioRec"] == undefined) {
-			window["audioRec"] = window["audioCtx"].createScriptProcessor(4096, 2, 2);
-		}
+			window["audioRec"] = window["audioCtx"].createScriptProcessor(2048, 2, 2);
+		}		
 
         window["audioRec"].onaudioprocess = function(e) {
 
 			let inputBuffer = e.inputBuffer;
 
+			//console.log( inputBuffer );
+
 			window["samplerate"] = inputBuffer.sampleRate;
-			let bufferSize = window["samplerate"] / 25;
+			let bufferSize = 2048;
 
 			window["channels"] = inputBuffer.numberOfChannels;
 			const dataArray = [ window["channels"] ];
@@ -43,18 +45,26 @@ try {
 			for ( let i = 0; i < window["channels"]; i++ ) {
 				dataArray[i] = new Float64Array(bufferSize);
 			}
+
+
+			//console.log( inputBuffer.getChannelData(0) );
+			//console.log( inputBuffer.getChannelData(0).length );
+
 			for ( let i = 0; i < bufferSize; i++ ) {
 				for ( let j = 0; j < window["channels"]; j++ ) {
 					dataArray[j][i] = inputBuffer.getChannelData(j)[i];
 				}
 			}
+
 			if ( window["queue"] != undefined ) {
+				// console.log( dataArray );
 				const r = window["queue"].push( dataArray, bufferSize );
-				console.log( "queue.push: " + ( r == true ) ? "true" : "false" );
+				console.log( "queue.push: " + (( r == true ) ? "true" : "false") );
 				window["queue"].printAvailableReadAndWrite();
 			}
 		};
 
+		window["audioSrc"].connect(window["audioRec"]);
 		window["audioRec"].connect(window["audioCtx"].destination);
 
 		window["audioCtx"].resume();
@@ -175,6 +185,7 @@ try {
 		window["audioRec"].onaudioprocess = undefined;
     }
 
+	/*
 
 	var draw = async function () {
 		requestAnimationFrame(draw);
@@ -185,6 +196,8 @@ try {
 	}
 
 	draw();
+	*/
+
 } 
 catch( e ) 
 {
