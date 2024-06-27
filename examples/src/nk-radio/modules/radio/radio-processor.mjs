@@ -46,7 +46,7 @@ class WorkletBasicProcessor extends AudioWorkletProcessor
 			let bufferSize = 0;
 
 			let channels = inputs[i].length;
-			if ( channels == 0 ) return false;
+			if ( channels == 0 ) break;
 
 			let dataArray = [ channels ];
 
