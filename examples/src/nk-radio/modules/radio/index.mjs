@@ -211,22 +211,24 @@ export default async () => {
                     })
                 }
 
-                CONFIG.html.button.start.addEventListener('click', async (e) => {
+                CONFIG.html.button.start.addEventListener( "click", async (e) => {
                                         
                     if (CONFIG.player.isPlaying) {
-                        await CONFIG.stream.song.pause()
-                        CONFIG.audio.ctx.suspend();
-                        CONFIG.html.button.start.textContent = "Start Audio"
+                        CONFIG.html.button.start.textContent = "Start Audio";
                         CONFIG.player.isPlaying = false;
+
+                        await CONFIG.stream.song.pause();
+                        CONFIG.audio.ctx.suspend();
                     } else {
-                        CONFIG.html.button.start.textContent = "Stop Audio"
+                        CONFIG.html.button.start.textContent = "Stop Audio";
                         CONFIG.player.isPlaying = true;
-                        await ctx(CONFIG)
-                        await newAudio(CONFIG)
-                        drawOscilloscope()
+
+                        await ctx(CONFIG);
+                        await newAudio(CONFIG);
+                        drawOscilloscope();
                     }
                     
-                })
+                } )
             }
         }
 
