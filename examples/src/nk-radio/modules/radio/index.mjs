@@ -75,58 +75,59 @@ const drawOscilloscope = () => {
     CONFIG.html.scope.context = CONFIG.html.scope.canvas.getContext('2d')
 
     const bufferSize = RENDER_QUANTUM;
+    let r = 0;
 
     CONFIG.audio.waveform = [2];
     CONFIG.audio.waveform[0] = new Float64Array(bufferSize);
     CONFIG.audio.waveform[1] = new Float64Array(bufferSize);
     if ( window["queue"] != undefined ) {
-        const r = window["queue"].pull( CONFIG.audio.waveform, bufferSize );
-        // console.debug( "pull: " + r );
-        // console.debug( "pull data: " + CONFIG.audio.waveform[0] );
-	    // window["queue"].printAvailableReadAndWrite();
+        r = window["queue"].pull( CONFIG.audio.waveform, bufferSize );
     }
 
-    CONFIG.html.scope.canvas.width = CONFIG.audio.waveform[0].length
-    CONFIG.html.scope.canvas.height = 200
-    CONFIG.html.scope.context.clearRect(0, 0, CONFIG.html.scope.canvas.width, CONFIG.html.scope.canvas.height)
-    
-    CONFIG.html.scope.context.beginPath()
+    if ( r ) {
 
-    for (let i = 0; i < CONFIG.audio.waveform[0].length; i++) {
-        const x = i
-        const y = (0.5 + (CONFIG.audio.waveform[0][i] / 2)) *  CONFIG.html.scope.canvas.height
+        CONFIG.html.scope.canvas.width = CONFIG.audio.waveform[0].length
+        CONFIG.html.scope.canvas.height = 200
+        CONFIG.html.scope.context.clearRect(0, 0, CONFIG.html.scope.canvas.width, CONFIG.html.scope.canvas.height)
+        
+        CONFIG.html.scope.context.beginPath()
 
-        if (i === 0) {
-            CONFIG.html.scope.context.moveTo(x, y)
-        } else {
-            CONFIG.html.scope.context.lineTo(x, y)
+        for (let i = 0; i < CONFIG.audio.waveform[0].length; i++) {
+            const x = i
+            const y = (0.5 + (CONFIG.audio.waveform[0][i] / 2)) *  CONFIG.html.scope.canvas.height
+
+            if (i === 0) {
+                CONFIG.html.scope.context.moveTo(x, y)
+            } else {
+                CONFIG.html.scope.context.lineTo(x, y)
+            }
         }
-    }
-    
-    CONFIG.html.scope.context.strokeStyle = '#5661FA'
-    CONFIG.html.scope.context.lineWidth = 2
-    CONFIG.html.scope.context.stroke()
-    
-    CONFIG.html.scope.context.beginPath()
+        
+        CONFIG.html.scope.context.strokeStyle = '#5661FA'
+        CONFIG.html.scope.context.lineWidth = 2
+        CONFIG.html.scope.context.stroke()
+        
+        CONFIG.html.scope.context.beginPath()
 
-    for (let i = 0; i < CONFIG.audio.waveform[1].length; i++) {
-        const x = i
-        const y = (0.5 + (CONFIG.audio.waveform[1][i] / 2)) *  CONFIG.html.scope.canvas.height
+        for (let i = 0; i < CONFIG.audio.waveform[1].length; i++) {
+            const x = i
+            const y = (0.5 + (CONFIG.audio.waveform[1][i] / 2)) *  CONFIG.html.scope.canvas.height
 
-        if (i === 0) {
-            CONFIG.html.scope.context.moveTo(x, y)
-        } else {
-            CONFIG.html.scope.context.lineTo(x, y)
+            if (i === 0) {
+                CONFIG.html.scope.context.moveTo(x, y)
+            } else {
+                CONFIG.html.scope.context.lineTo(x, y)
+            }
         }
-    }
-    
-    CONFIG.html.scope.context.strokeStyle = '#FA5769'
-    CONFIG.html.scope.context.lineWidth = 2
-    CONFIG.html.scope.context.stroke()
+        
+        CONFIG.html.scope.context.strokeStyle = '#FA5769'
+        CONFIG.html.scope.context.lineWidth = 2
+        CONFIG.html.scope.context.stroke()
 
+    }
 
     //if ( CONFIG.player.isPlaying ) 
-    window.requestAnimationFrame(drawOscilloscope)
+        window.requestAnimationFrame(drawOscilloscope)
 }
 
 const ctx = async (CONFIG) => {
