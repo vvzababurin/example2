@@ -15,11 +15,9 @@
     
     <title>wasmFreeQueue test html page</title>
 
-<!--
     <audio id="audiostream" crossorigin="anonymous" preload="metadata" 
         src="https://hermitage.hostingradio.ru/hermitage128.mp3">��� ������� �� ������������ ������� <code>audio</code>.
     </audio>
--->
 
     <style></style>
 

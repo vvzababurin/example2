@@ -6,7 +6,7 @@ import { getConstant } from "./constants.js";
 
 const { RENDER_QUANTUM, FRAME_SIZE } = getConstant( "radio" );
 
-const nkMemory = window.document.querySelector('nk-memory')
+const nkMemory = window.document.querySelector( "nk-memory" );
 
 let audioContext = null;
 
@@ -80,11 +80,12 @@ const drawOscilloscope = () => {
     CONFIG.audio.waveform = [2];
     CONFIG.audio.waveform[0] = new Float64Array(bufferSize);
     CONFIG.audio.waveform[1] = new Float64Array(bufferSize);
+
     if ( window["queue"] != undefined ) {
         r = window["queue"].pull( CONFIG.audio.waveform, bufferSize );
     }
 
-    if ( r ) {
+    if ( r != 0 ) {
 
         CONFIG.html.scope.canvas.width = CONFIG.audio.waveform[0].length
         CONFIG.html.scope.canvas.height = 200
@@ -126,7 +127,9 @@ const drawOscilloscope = () => {
 
     }
 
-    //if ( CONFIG.player.isPlaying ) 
+    console.debug( "CONFIG.player.isPlaying: " + CONFIG.player.isPlaying );
+
+    if ( CONFIG.player.isPlaying == true ) 
         window.requestAnimationFrame(drawOscilloscope)
 }
 
@@ -176,6 +179,7 @@ const init = (self) => {
     CONFIG.html.button.start = self['this']['shadowRoot'].querySelector('#start')
     CONFIG.html.button.radios.this = self['this']['shadowRoot'].querySelectorAll('input[name="radio-selection"]')
     CONFIG.html.button.radios.length = CONFIG.html.button.radios.this.length;
+    CONFIG.player.isPlaying = false;
 }
 
 export default async () => {
@@ -183,6 +187,7 @@ export default async () => {
         class Radio {
             constructor(self) {
                 init(self)
+
                 for (let i = 0, max = CONFIG.html.button.radios.length; i < max; i++) {
                     if (CONFIG.html.button.radios.this[i].checked === true) {
                         CONFIG.stream.path = CONFIG.html.button.radios.this[i].value
@@ -192,10 +197,10 @@ export default async () => {
                 CONFIG.stream.song = new Audio(CONFIG.stream.source)
 
                 for (let i = 0, max = CONFIG.html.button.radios.length; i < max; i++) {
-                    CONFIG.html.button.radios.this[i].addEventListener('change', async (event) => {
+                    CONFIG.html.button.radios.this[i].addEventListener( "change", async (event) => {
                         if (CONFIG.player.isPlaying) {
                             await CONFIG.stream.song.pause()
-                            CONFIG.html.button.start.textContent = 'Start Audio'
+                            CONFIG.html.button.start.textContent = "Start Audio"
                             CONFIG.player.isPlaying = !CONFIG.player.isPlaying
                             CONFIG.stream.path = event.target.value
                             if(CONFIG.audio.ctx) {
@@ -207,17 +212,20 @@ export default async () => {
                 }
 
                 CONFIG.html.button.start.addEventListener('click', async (e) => {
+                                        
                     if (CONFIG.player.isPlaying) {
                         await CONFIG.stream.song.pause()
                         CONFIG.audio.ctx.suspend();
-                        CONFIG.html.button.start.textContent = 'Start Audio'
+                        CONFIG.html.button.start.textContent = "Start Audio"
+                        CONFIG.player.isPlaying = false;
                     } else {
-                        CONFIG.html.button.start.textContent = 'Stop Audio'
+                        CONFIG.html.button.start.textContent = "Stop Audio"
+                        CONFIG.player.isPlaying = true;
                         await ctx(CONFIG)
                         await newAudio(CONFIG)
                         drawOscilloscope()
                     }
-                    CONFIG.player.isPlaying = !CONFIG.player.isPlaying
+                    
                 })
             }
         }
