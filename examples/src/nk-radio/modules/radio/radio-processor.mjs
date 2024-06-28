@@ -4,40 +4,12 @@ class WorkletBasicProcessor extends AudioWorkletProcessor
 {
     constructor(options) {
 		super(); 
-		//this.queue = FreeQueue.fromSource( options.processorOptions.queue );
-		//this.queue = FreeQueue.fromSource( options.processorOptions.queue );
-
 		this.queue = Object.setPrototypeOf(options.processorOptions.queue, FreeQueue.prototype);
 		this.instance = options.processorOptions.instance;
-
-		//this.waveform = options.processorOptions.waveform;
-		//this.channelCount = options.channelCount;
-/*
-		this.context = options.processorOptions.context;
-		
-		this.context.decodeAudioData(options.arrayBuffer).then(function (buffer) {
-			console.log( buffer );
-		}.bind(this));
-*/
     }
 	
     process(inputs, outputs, parameters) 
 	{
-		// let inputBuffer = inputs[0];
-
-		// console.log( "queue: ", this.queue );
-		// console.log( "instance: ", this.instance );
-
-		//console.log( "inputs: ", inputs[0][0] );
-		//console.log( "outputs: ", outputs[0][0] );
-	
-
-		//console.log( "waveform: ", this.waveform );
-		
-		//console.log( "inputs: ", inputs.length );
-		//console.log( "outputs: " , 0 );
-
-
 		////////////////////////////////////////////////////////////////////////////////////////
 		// inputs count...
 		////////////////////////////////////////////////////////////////////////////////////////

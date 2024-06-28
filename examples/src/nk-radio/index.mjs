@@ -1,17 +1,17 @@
-import modules from './modules/radio/index.mjs'
-import preset from './template/index.mjs'
+import modules from "./modules/radio/index.mjs"
+import preset from "./template/index.mjs"
 
 const getTemplate = (html) => {
   return new Promise(function (resolve, reject) {
     let parser = new DOMParser()
-    let body = parser.parseFromString(html, 'text/html')
-    resolve(body.getElementsByTagName('template')[0].content.cloneNode(true))
+    let body = parser.parseFromString(html, "text/html")
+    resolve(body.getElementsByTagName("template")[0].content.cloneNode(true))
   })
 }
 
 const getCss = (css) => {
   return new Promise(function (resolve, reject) {
-    let style = document.createElement('style')
+    let style = document.createElement("style")
     style.textContent = `${css}`
     resolve(style)
   })
@@ -30,9 +30,9 @@ const template = (component) => {
   return new Promise(async (resolve, reject) => {
     component.template = (component.this.dataset.preset)
         ? await preset(component.this.dataset.preset)
-        : await preset('default')
+        : await preset("default")
     let body = await getTemplate(component.template.html)
-    component.this.attachShadow({mode: 'open'})
+    component.this.attachShadow({mode: "open"})
     let css = await getCss(component.template.css)
     component.this.shadowRoot.appendChild(body)
     component.this.shadowRoot.appendChild(css)
@@ -40,17 +40,8 @@ const template = (component) => {
   })
 }
 
-const nkRadio =  class extends HTMLElement {
-  set sharedArrayBuffer(value) {
-    // const nkMemory = window.document.querySelector('nk-memory')
-    // nkMemory.sharedArrayBuffer = value
-  }
-
-  get sharedArrayBuffer() {
-    // const nkMemory = window.document.querySelector('nk-memory')
-    // return nkMemory.sharedArrayBuffer
-  }
-
+const nkRadio = class extends HTMLElement
+{
   constructor () {
     super()
     props(this)
@@ -61,8 +52,8 @@ const nkRadio =  class extends HTMLElement {
   }
 }
 
-if (customElements.get('nk-radio') === undefined) {
-  customElements.define('nk-radio', nkRadio );
+if (customElements.get("nk-radio") === undefined) {
+  customElements.define("nk-radio", nkRadio );
 };
 
 export default { nkRadio }

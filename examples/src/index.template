@@ -10,12 +10,16 @@
     <script type="text/javascript" src="js/jquery-3.7.1.min.js"></script>
     <script type="text/javascript" src="js/jquery-ui.js"></script>
     <script type="text/javascript" src="js/jquery-ui-fix.js"></script>
+
+    <script type="module" src="nk-radio/index.mjs"></script>
     
     <title>wasmFreeQueue test html page</title>
 
+<!--
     <audio id="audiostream" crossorigin="anonymous" preload="metadata" 
         src="https://hermitage.hostingradio.ru/hermitage128.mp3">��� ������� �� ������������ ������� <code>audio</code>.
     </audio>
+-->
 
     <style></style>
 
@@ -111,6 +115,10 @@
 </head>
 
 <body>
+	<div class="nk-radio"><slot name="nk-radio"></slot></div>
+
+        <nk-radio slot="nk-radio" data-field="settings-2" data-services-path="webgpu"></nk-radio>
+
 	<button id="startTest1">CreateThreads</button>
 	<button id="startTest2">DestroyThreads</button>
 	<button id="startTest3">PrintVarStack</button>

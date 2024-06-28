@@ -1,17 +1,14 @@
-import {FreeQueue, getConstant} from '../free-queue/index.mjs'
-import {createTestIR, fetchAudioFileToF32Array } from './ir-helper.js'
-const { RENDER_QUANTUM, QUEUE_SIZE } = getConstant('radio');
-import  Assets  from './assets.js'
-import { isEmpty } from '../isEmpty/index.mjs';
+import Assets from './assets.js'
+import isEmpty from '../isEmpty/index.mjs';
+
 const nkMemory = window.document.querySelector('nk-memory')
 
 let audioContext = null;
-let worker = null;
-let isWorkerInitialized = false;
 
 let toggleButton = null;
 let isPlaying = false;
 let messageView = null;
+
 let impulseResponseSelect = {
     value: 'TEST'
 };
@@ -75,6 +72,7 @@ const detectFeaturesAndReport = (viewElement) => {
 
     return areRequiremensMet;
 };
+
 const newAudio = async (CONFIG) => {
     try {
         await CONFIG.stream.song.pause()
@@ -90,8 +88,9 @@ const newAudio = async (CONFIG) => {
             CONFIG.html.button.start.textContent = 'Stop Audio'
             return true
         });
-
-        await CONFIG.stream.source.connect(CONFIG.audio.master.gain)
+        await CONFIG.stream.source.connect(CONFIG.audio.ctx.destination);
+        await CONFIG.stream.source.connect(CONFIG.audio.processorNode);
+        //await CONFIG.stream.source.connect(CONFIG.audio.master.gain);
     } catch (e) {
         CONFIG.html.button.start.textContent = 'Stop Audio'
         return true
@@ -99,6 +98,7 @@ const newAudio = async (CONFIG) => {
 }
 
 const drawOscilloscope = () => {
+    return ;
     CONFIG.html.scope.context = CONFIG.html.scope.canvas.getContext('2d')
     CONFIG.html.scope.canvas.width = CONFIG.audio.waveform.length
     CONFIG.html.scope.canvas.height = 200
@@ -115,55 +115,52 @@ const drawOscilloscope = () => {
         }
     }
     CONFIG.audio.analyser.getFloatTimeDomainData(CONFIG.audio.waveform)
+
+    // CONFIG.audio.waveform = window["queue"].pull();
+
     CONFIG.html.scope.context.strokeStyle = '#5661FA'
     CONFIG.html.scope.context.lineWidth = 2
     CONFIG.html.scope.context.stroke()
-    window.requestAnimationFrame(drawOscilloscope)
+    if ( CONFIG.player.isPlaying ) window.requestAnimationFrame(drawOscilloscope)
 }
 
 const ctx = async (CONFIG) => {
-    if(!CONFIG.audio.ctx) {
+    if( !CONFIG.audio.ctx ) {
         CONFIG.audio.ctx = new window.AudioContext;
-        // console.log('sssssssssssssssssssssssssssssssssssss', new URL('../radio-processor.mjs', import.meta.url).pathname)
-        await CONFIG.audio.ctx.audioWorklet.addModule(new URL('../free-queue/src/radio-processor.mjs', import.meta.url).pathname);
+        await CONFIG.audio.ctx.audioWorklet.addModule(new URL('./radio-processor.mjs', import.meta.url).pathname);
     }
-    //
-    CONFIG.audio.oscillatorNode = new OscillatorNode(CONFIG.audio.ctx);
+    //CONFIG.audio.oscillatorNode = new OscillatorNode(CONFIG.audio.ctx);
 
-// Create an atomic state for synchronization between Worker and AudioWorklet.
+    // Create an atomic state for synchronization between Worker and AudioWorklet.
 
     CONFIG.audio.processorNode = new AudioWorkletNode(CONFIG.audio.ctx, 'radio-processor', {
         processorOptions: {
-            undefined,
-            undefined,
-            undefined
-        }
+            queue: window["queue"],
+            instance: window["instance"]
+        },
+        numberOfInputs: 1,
+        numberOfOutputs: 1,
+        outputChannelCount: [2],
+        channelCount: 2,
+        channelCountMode: "max",
+        channelInterpretation: "speakers"
     });
 
-    if(isEmpty(worker)) {
-        worker = new Worker(new URL('../free-queue/src/worker.sync.js', import.meta.url), {
-            name: 'Radio',
-            type: 'module',
-        });
-    }
-
-    worker.onerror = (event) => {
-        console.log('[main.js] Error from worker.js: ', event);
-    };
+    CONFIG.audio.processorNode.connect(CONFIG.audio.ctx.destination);
 
     CONFIG.audio.ctx.suspend();
 
-    CONFIG.audio.analyser =  CONFIG.audio.ctx.createAnalyser()
-    CONFIG.audio.master.gain = CONFIG.audio.ctx.createGain()
+//    CONFIG.audio.analyser =  CONFIG.audio.ctx.createAnalyser()
+//    CONFIG.audio.master.gain = CONFIG.audio.ctx.createGain()
 
-    CONFIG.audio.waveform = new Float32Array(CONFIG.audio.analyser.frequencyBinCount)
-    await CONFIG.audio.analyser.getFloatTimeDomainData(CONFIG.audio.waveform)
+//    CONFIG.audio.waveform = new Float32Array(CONFIG.audio.analyser.frequencyBinCount)
+//    await CONFIG.audio.analyser.getFloatTimeDomainData(CONFIG.audio.waveform)
 
     // TODO переключатель между радио и осцилятором
-    CONFIG.audio.master.gain.connect(CONFIG.audio.processorNode).connect(CONFIG.audio.analyser).connect(CONFIG.audio.ctx.destination);
+//    CONFIG.audio.master.gain.connect(CONFIG.audio.processorNode).connect(CONFIG.audio.analyser).connect(CONFIG.audio.ctx.destination);
     // CONFIG.audio.oscillatorNode.connect(CONFIG.audio.processorNode).connect(CONFIG.audio.analyser).connect(CONFIG.audio.ctx.destination);
 
-    CONFIG.audio.oscillatorNode.start();
+//    CONFIG.audio.oscillatorNode.start();
 
     return CONFIG.audio.ctx
 }
@@ -175,74 +172,6 @@ const init = (self) => {
     CONFIG.html.button.radios.length = CONFIG.html.button.radios.this.length;
 }
 
-const initializeWorkerIfNecessary = async (self) => {
-    if (isWorkerInitialized) {
-        return;
-    }
-
-    console.assert(CONFIG.audio.ctx);
-
-    let filePath = null;
-    let irArray = null;
-    if (impulseResponseSelect) {
-        // When the file path is `TEST` generates a test IR (10 samples). See
-        // `assets.js` for details.
-        filePath = impulseResponseSelect.value;
-        irArray = (filePath === 'TEST')
-            ? createTestIR()
-            : await fetchAudioFileToF32Array(CONFIG.audio.ctx, filePath);
-
-        impulseResponseSelect.disabled = true;
-    }
-
-    console.log('SAMPLE RATE:', CONFIG.audio.ctx.sampleRate)
-
-    worker.addEventListener('message', (event) => {
-        if(event.data.status) {
-            switch (event.data.type) {
-                case 'terminate':
-                    //TODO надо проверить уничтожится он или нет до уничтожения компонента
-                    console.log('######## TERMINATE ##########')
-                    break
-                default:
-                    self.this.sharedArrayBuffer =  {
-                        name: 'Radio',
-                        inputQueue: QUEUE_SIZE * 2,
-                        outputQueue: QUEUE_SIZE * 2,
-                        atomicState: 4 * Int32Array.BYTES_PER_ELEMENT,
-                        irArray: undefined,
-                        sampleRate: 48000,
-                        type: 'sync'
-                    }
-
-                    // nkMemory.hardwareConcurrency
-
-                    document.dispatchEvent(new CustomEvent(`free-queue`, {
-                        detail: {
-                            status: true
-                        }
-                    }));
-                    break
-            }
-        }
-    }, {once: true})
-
-    // Send FreeQueue instance and atomic state to worker.
-    worker.postMessage({
-        type: 'init',
-        data: {
-            inputQueue,
-            outputQueue,
-            atomicState,
-            irArray,
-            sampleRate: CONFIG.audio.ctx.sampleRate,
-        }
-    });
-
-    console.log('[main.js] initializeWorkerIfNecessary(): ' + filePath);
-
-    isWorkerInitialized = true;
-};
 export default async () => {
     return new Promise((resolve, reject) => {
         class Radio {
@@ -275,19 +204,10 @@ export default async () => {
                     if (CONFIG.player.isPlaying) {
                         await CONFIG.stream.song.pause()
                         CONFIG.audio.ctx.suspend();
-                        // nkMemory.sharedArrayBuffer = {
-                        //     isRemove: true,
-                        //     name: 'radio'
-                        // }
-                        isWorkerInitialized = false
-                        worker.terminate()
-                        worker = null
-                        // nkMemory.hardwareConcurrency
                         CONFIG.html.button.start.textContent = 'Start Audio'
                     } else {
                         CONFIG.html.button.start.textContent = 'Stop Audio'
                         await ctx(CONFIG)
-                        // await initializeWorkerIfNecessary(self);
                         await newAudio(CONFIG)
                         drawOscilloscope()
                     }

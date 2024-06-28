@@ -149,7 +149,7 @@ try {
 	
 			window["audioGain"].connect( window["audioWorklet"] ).connect( window["audioAnalyser"] ).connect(window["audioCtx"].destination);
 		}
-*/			
+*/
 		window["audioCtx"].resume();
 		window["audioElement"].play();
 		
