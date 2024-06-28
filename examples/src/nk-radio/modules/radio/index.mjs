@@ -127,8 +127,6 @@ const drawOscilloscope = () => {
 
     }
 
-    console.debug( "CONFIG.player.isPlaying: " + CONFIG.player.isPlaying );
-
     if ( CONFIG.player.isPlaying == true ) 
         window.requestAnimationFrame(drawOscilloscope)
 }
