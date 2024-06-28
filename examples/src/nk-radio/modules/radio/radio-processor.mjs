@@ -1,4 +1,7 @@
 import FreeQueue from "../../../free-queue/free-queue.js";
+import { getConstant } from "./constants.js";
+
+const { RENDER_QUANTUM, FRAME_SIZE } = getConstant( "radio" );
 
 class WorkletBasicProcessor extends AudioWorkletProcessor 
 {
@@ -35,10 +38,9 @@ class WorkletBasicProcessor extends AudioWorkletProcessor
 			}
 
 			if ( this.queue != undefined ) {
-				console.log( dataArray );
 				const r = this.queue.push( dataArray, bufferSize );
-				console.log( "processor: queue.push [ " + ( ( r == true ) ? "true" : "false" ) + " ]" );
-				this.queue.printAvailableReadAndWrite();
+				console.debug( "processor: queue.push [ " + ( ( r == true ) ? "true" : "false" ) + " ]" );
+				// this.queue.printAvailableReadAndWrite();
 			}
 
 		}

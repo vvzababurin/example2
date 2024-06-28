@@ -1,17 +1,17 @@
 import Assets from './assets.js'
 import isEmpty from '../isEmpty/index.mjs';
 
+import FreeQueue from "../../../free-queue/free-queue.js";
+import { getConstant } from "./constants.js";
+
+const { RENDER_QUANTUM, FRAME_SIZE } = getConstant( "radio" );
+
 const nkMemory = window.document.querySelector('nk-memory')
 
 let audioContext = null;
 
 let toggleButton = null;
 let isPlaying = false;
-let messageView = null;
-
-let impulseResponseSelect = {
-    value: 'TEST'
-};
 
 const CONFIG = {
     audio: {
@@ -50,38 +50,13 @@ const CONFIG = {
     }
 }
 
-const detectFeaturesAndReport = (viewElement) => {
-    let areRequiremensMet = true;
-
-    if (typeof navigator.gpu !== 'object') {
-        viewElement.textContent +=
-            'ERROR: WebGPU is not available on your browser.\r\n';
-        areRequiremensMet = false;
-    }
-
-    if (typeof SharedArrayBuffer !== 'function') {
-        viewElement.textContent +=
-            'ERROR: SharedArrayBuffer is not available on your browser.\r\n';
-        areRequiremensMet = false;
-    }
-
-    if (areRequiremensMet) {
-        viewElement.textContent +=
-            'All requirements have been met. The experiment is ready to run.\r\n';
-    }
-
-    return areRequiremensMet;
-};
-
 const newAudio = async (CONFIG) => {
     try {
         await CONFIG.stream.song.pause()
         await CONFIG.audio.ctx.suspend();
-
         CONFIG.stream.song = new Audio(CONFIG.stream.path)
         CONFIG.stream.source = CONFIG.audio.ctx.createMediaElementSource(CONFIG.stream.song)
         CONFIG.stream.song.crossOrigin = 'anonymous'
-
         CONFIG.stream.song.addEventListener("canplay", async (event) => {
             await CONFIG.audio.ctx.resume();
             await CONFIG.stream.song.play()
@@ -90,7 +65,6 @@ const newAudio = async (CONFIG) => {
         });
         await CONFIG.stream.source.connect(CONFIG.audio.ctx.destination);
         await CONFIG.stream.source.connect(CONFIG.audio.processorNode);
-        //await CONFIG.stream.source.connect(CONFIG.audio.master.gain);
     } catch (e) {
         CONFIG.html.button.start.textContent = 'Stop Audio'
         return true
@@ -98,15 +72,29 @@ const newAudio = async (CONFIG) => {
 }
 
 const drawOscilloscope = () => {
-    return ;
     CONFIG.html.scope.context = CONFIG.html.scope.canvas.getContext('2d')
-    CONFIG.html.scope.canvas.width = CONFIG.audio.waveform.length
+
+    const bufferSize = RENDER_QUANTUM;
+
+    CONFIG.audio.waveform = [2];
+    CONFIG.audio.waveform[0] = new Float64Array(bufferSize);
+    CONFIG.audio.waveform[1] = new Float64Array(bufferSize);
+    if ( window["queue"] != undefined ) {
+        const r = window["queue"].pull( CONFIG.audio.waveform, bufferSize );
+        // console.debug( "pull: " + r );
+        // console.debug( "pull data: " + CONFIG.audio.waveform[0] );
+	    // window["queue"].printAvailableReadAndWrite();
+    }
+
+    CONFIG.html.scope.canvas.width = CONFIG.audio.waveform[0].length
     CONFIG.html.scope.canvas.height = 200
     CONFIG.html.scope.context.clearRect(0, 0, CONFIG.html.scope.canvas.width, CONFIG.html.scope.canvas.height)
+    
     CONFIG.html.scope.context.beginPath()
-    for (let i = 0; i < CONFIG.audio.waveform.length; i++) {
+
+    for (let i = 0; i < CONFIG.audio.waveform[0].length; i++) {
         const x = i
-        const y = (0.5 + (CONFIG.audio.waveform[i] / 2)) *  CONFIG.html.scope.canvas.height
+        const y = (0.5 + (CONFIG.audio.waveform[0][i] / 2)) *  CONFIG.html.scope.canvas.height
 
         if (i === 0) {
             CONFIG.html.scope.context.moveTo(x, y)
@@ -114,14 +102,31 @@ const drawOscilloscope = () => {
             CONFIG.html.scope.context.lineTo(x, y)
         }
     }
-    CONFIG.audio.analyser.getFloatTimeDomainData(CONFIG.audio.waveform)
-
-    // CONFIG.audio.waveform = window["queue"].pull();
-
+    
     CONFIG.html.scope.context.strokeStyle = '#5661FA'
     CONFIG.html.scope.context.lineWidth = 2
     CONFIG.html.scope.context.stroke()
-    if ( CONFIG.player.isPlaying ) window.requestAnimationFrame(drawOscilloscope)
+    
+    CONFIG.html.scope.context.beginPath()
+
+    for (let i = 0; i < CONFIG.audio.waveform[1].length; i++) {
+        const x = i
+        const y = (0.5 + (CONFIG.audio.waveform[1][i] / 2)) *  CONFIG.html.scope.canvas.height
+
+        if (i === 0) {
+            CONFIG.html.scope.context.moveTo(x, y)
+        } else {
+            CONFIG.html.scope.context.lineTo(x, y)
+        }
+    }
+    
+    CONFIG.html.scope.context.strokeStyle = '#FA5769'
+    CONFIG.html.scope.context.lineWidth = 2
+    CONFIG.html.scope.context.stroke()
+
+
+    //if ( CONFIG.player.isPlaying ) 
+    window.requestAnimationFrame(drawOscilloscope)
 }
 
 const ctx = async (CONFIG) => {

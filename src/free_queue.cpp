@@ -188,12 +188,13 @@ int CreateFreeQueueThreads() {
       return -1;
     }
     printf( "CreateThreads: monitor thread created...\n" );
-
+/*
     p = pthread_create( &tid_consumer, 0, consumer, &memdata );
     if ( p ) {
       return -1;
     }
     printf( "CreateThreads: consumer thread created...\n" );
+*/
 
 /*
     p = pthread_create( &tid_producer, 0, producer, &memdata );
