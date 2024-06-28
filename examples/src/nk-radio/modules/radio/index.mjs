@@ -1,5 +1,5 @@
-import Assets from './assets.js'
-import isEmpty from '../isEmpty/index.mjs';
+import Assets from "./assets.js";
+import isEmpty from "../isEmpty/index.mjs";
 
 import FreeQueue from "../../../free-queue/free-queue.js";
 import { getConstant } from "./constants.js";
@@ -136,8 +136,8 @@ const ctx = async (CONFIG) => {
         CONFIG.audio.ctx = new window.AudioContext;
         await CONFIG.audio.ctx.audioWorklet.addModule(new URL('./radio-processor.mjs', import.meta.url).pathname);
     }
-    //CONFIG.audio.oscillatorNode = new OscillatorNode(CONFIG.audio.ctx);
 
+    //CONFIG.audio.oscillatorNode = new OscillatorNode(CONFIG.audio.ctx);
     // Create an atomic state for synchronization between Worker and AudioWorklet.
 
     CONFIG.audio.processorNode = new AudioWorkletNode(CONFIG.audio.ctx, 'radio-processor', {

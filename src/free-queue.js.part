@@ -62,20 +62,7 @@ class FreeQueue {
 
   static fromSource(queueSource)
   {
-    const queue = new FreeQueue(0, 0);
-
-    const bufferLength = queueSource.bufferLength;
-    const channelCount = queueSource.channelCount;
-
-    const states = queueSource.states;
-    const channelData = queueSource.channelData;
-    
-    queue.bufferLength = bufferLength;
-    queue.channelCount = channelCount;
-    queue.states = states;
-    queue.channelData = channelData;
-
-    return queue;
+    return Object.setPrototypeOf(queueSource, FreeQueue.prototype);
   }
 
   /**
