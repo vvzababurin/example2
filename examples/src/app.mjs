@@ -12,11 +12,7 @@ try {
 		await globalThis["audioCtx"].audioWorklet.addModule("./nk-radio/modules/radio/radio-processor.mjs");
 		 
 		globalThis["audioCtx"].suspend();
-
-		const audioSrc = "https://hermitage.hostingradio.ru/hermitage128.mp3";
-	
-		$("#audiostream").attr("src", audioSrc);
-		globalThis["audioElement"] = $("#audiostream")[0];
+		globalThis["audioElement"] = globalThis.document.getElementById("audiostream");
 	
 		if (globalThis["audioSrc"] == undefined) {
 			globalThis["audioSrc"] = globalThis["audioCtx"].createMediaElementSource(globalThis["audioElement"]);
