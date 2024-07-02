@@ -43,7 +43,6 @@
 				if ( r == 1 ) {
 					globalThis.onFreeQueueInitialize();
 				}
-
 			});
 			const t2 = globalThis.document.getElementById("startTest2");
 			t2.addEventListener( "click", async (e) => {
