@@ -3,27 +3,32 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
+    <title>wasmFreeQueue test html page</title>
+
+<!--
     <link href="js/themes/dark-hive/jquery-ui.css" rel="stylesheet" />
     <link href="js/themes/dark-hive/theme.css" rel="stylesheet" />
     <link href="js/jquery-ui-fix.css" rel="stylesheet" />
 
+    <style></style>
+
     <script type="text/javascript" src="js/jquery-3.7.1.min.js"></script>
     <script type="text/javascript" src="js/jquery-ui.js"></script>
     <script type="text/javascript" src="js/jquery-ui-fix.js"></script>
+-->
 
     <script type="module" src="nk-radio/index.mjs"></script>
     
-    <title>wasmFreeQueue test html page</title>
-
+<!--
     <audio id="audiostream" crossorigin="anonymous" preload="metadata" 
         src="https://hermitage.hostingradio.ru/hermitage128.mp3">��� ������� �� ������������ ������� <code>audio</code>.
     </audio>
-
-    <style></style>
+-->
 
     <script type="module">
 		import FreeQueue from "./free-queue/free-queue.js"
 		import initWasmFreeQueue from "./free-queue/free-queue.asm.js"
+
 		try {
 			window["Module"] = {};
 			initWasmFreeQueue(window["Module"]);
@@ -53,24 +58,17 @@
 				window["Module"].callMain("");
 				window.onFreeQueueInitialize();
 			};
-		} 
-		catch( e ) 
-		{
-			console.log( "exception: " + e );
-			throw( e );
-		}
-    </script>
-
-    <script type="module">
-		jQuery(document).ready(function () {
-			$('#startTest1').click(function() {
+			const t1 = window.document.getElementById("startTest1");
+			t1.addEventListener( "click", async (e) => {
 				const CreateFreeQueueThreads = window["Module"].cwrap('CreateFreeQueueThreads','number',[ '' ]);
 				const r = CreateFreeQueueThreads();
 				if ( r == 1 ) {
 					window.onFreeQueueInitialize();
 				}
+
 			});
-			$('#startTest2').click(function() {
+			const t2 = window.document.getElementById("startTest2");
+			t2.addEventListener( "click", async (e) => {
 				const DestroyFreeQueueThreads = window["Module"].cwrap('DestroyFreeQueueThreads','number',[ '' ]);
 				const r = DestroyFreeQueueThreads();
 				if ( r == 1 ) {
@@ -78,14 +76,16 @@
 					window["instance"] = undefined;
 				}
 			});
-			$('#startTest3').click(function() {
+			const t3 = window.document.getElementById("startTest3");
+			t3.addEventListener( "click", async (e) => {
 				const PrintQueueInfo = window["Module"].cwrap('PrintQueueInfo','',[ 'number' ]);
 				if ( window["instance"] != undefined ) {	
 					PrintQueueInfo( window["instance"] );
 					if ( window["queue"] != undefined ) window["queue"].printAvailableReadAndWrite();
 				}
 			});
-			$('#startTest4').click(function() {
+			const t4 = window.document.getElementById("startTest4");
+			t4.addEventListener( "click", async (e) => {
 				const PrintQueueInfo = window["Module"].cwrap('PrintQueueInfo','',[ 'number' ]);
 				const d = [2];
 				let bufferSize = window["samplerate"] / 25;
@@ -98,17 +98,24 @@
 					window["queue"].printAvailableReadAndWrite();
 				}
 			});
-			$('#startTest5').click(function() {
+			const t5 = window.document.getElementById("startTest5");
+			t5.addEventListener( "click", async (e) => {
 				if ( window["isPlaybackInProgress"] == false ) {
 					window.startplayback();
 				}
 			});
-			$('#startTest6').click(function() {
+			const t6 = window.document.getElementById("startTest6");
+			t6.addEventListener( "click", async (e) => {
 				if ( window["isPlaybackInProgress"] == true ) {
 					window.stopplayback();
 				}
 			});
-		});
+		} 
+		catch( e ) 
+		{
+			console.log( "exception: " + e );
+			throw( e );
+		}
     </script>
 </head>
 
