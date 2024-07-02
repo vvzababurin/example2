@@ -83,6 +83,7 @@ const drawOscilloscope = () => {
 
     if ( window["queue"] != undefined ) {
         r = window["queue"].pull( CONFIG.audio.waveform, bufferSize );
+	console.debug( "draw: queue.pull [ " + ( ( r == true ) ? "true" : "false" ) + " ]" );
     }
 
     if ( r != 0 ) {

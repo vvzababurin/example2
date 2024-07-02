@@ -2,31 +2,11 @@
 <html lang="ru">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
     <title>wasmFreeQueue test html page</title>
-
-<!--
-    <link href="js/themes/dark-hive/jquery-ui.css" rel="stylesheet" />
-    <link href="js/themes/dark-hive/theme.css" rel="stylesheet" />
-    <link href="js/jquery-ui-fix.css" rel="stylesheet" />
-
-    <style></style>
-
-    <script type="text/javascript" src="js/jquery-3.7.1.min.js"></script>
-    <script type="text/javascript" src="js/jquery-ui.js"></script>
-    <script type="text/javascript" src="js/jquery-ui-fix.js"></script>
--->
-
-    <script type="module" src="nk-radio/index.mjs"></script>
-    
-    <audio id="audiostream" crossorigin="anonymous" preload="metadata" 
-        src="https://hermitage.hostingradio.ru/hermitage128.mp3">��� ������� �� ������������ ������� <code>audio</code>.
-    </audio>
-
+    <script type="module" src="nk-radio/index.mjs"></script>   
     <script type="module">
 		import FreeQueue from "./free-queue/free-queue.js"
 		import initWasmFreeQueue from "./free-queue/free-queue.asm.js"
-
 		try {
 			globalThis["Module"] = {};
 			initWasmFreeQueue(globalThis["Module"]);
@@ -118,6 +98,9 @@
 </head>
 
 <body>
+	<audio id="audiostream" crossorigin="anonymous" preload="metadata" 
+		src="https://hermitage.hostingradio.ru/hermitage128.mp3">��� ������� �� ������������ ������� <code>audio</code>.
+	</audio>
 	<div class="nk-radio"><slot name="nk-radio"></slot></div>
 	<nk-radio slot="nk-radio" data-field="settings-2" data-services-path="webgpu"></nk-radio>
 	<button id="startTest1">CreateThreads</button>
