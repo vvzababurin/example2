@@ -19,95 +19,93 @@
 
     <script type="module" src="nk-radio/index.mjs"></script>
     
-<!--
     <audio id="audiostream" crossorigin="anonymous" preload="metadata" 
         src="https://hermitage.hostingradio.ru/hermitage128.mp3">��� ������� �� ������������ ������� <code>audio</code>.
     </audio>
--->
 
     <script type="module">
 		import FreeQueue from "./free-queue/free-queue.js"
 		import initWasmFreeQueue from "./free-queue/free-queue.asm.js"
 
 		try {
-			window["Module"] = {};
-			initWasmFreeQueue(window["Module"]);
-			window["onFreeQueueInitialize"] = () => {
-				const GetFreeQueueThreads = window["Module"].cwrap('GetFreeQueueThreads','number',[ '' ]);
-				const GetFreeQueuePointers = window["Module"].cwrap('GetFreeQueuePointers','number',[ 'number', 'string' ]);
-				const PrintQueueInfo = window["Module"].cwrap('PrintQueueInfo','',[ 'number' ]);
-				const CreateFreeQueue = window["Module"].cwrap('CreateFreeQueue','number',[ 'number', 'number' ]);
-				const PrintQueueAddresses = window["Module"].cwrap('PrintQueueAddresses','',[ 'number' ]);
-				window["instance"] = GetFreeQueueThreads();
-				const bufferLengthPtr = GetFreeQueuePointers( window["instance"], "buffer_length" );
-				const channelCountPtr = GetFreeQueuePointers( window["instance"], "channel_count" );
-				const statePtr = GetFreeQueuePointers( window["instance"], "state" );
-				const channelDataPtr = GetFreeQueuePointers( window["instance"], "channel_data" );
+			globalThis["Module"] = {};
+			initWasmFreeQueue(globalThis["Module"]);
+			globalThis["onFreeQueueInitialize"] = () => {
+				const GetFreeQueueThreads = globalThis["Module"].cwrap('GetFreeQueueThreads','number',[ '' ]);
+				const GetFreeQueuePointers = globalThis["Module"].cwrap('GetFreeQueuePointers','number',[ 'number', 'string' ]);
+				const PrintQueueInfo = globalThis["Module"].cwrap('PrintQueueInfo','',[ 'number' ]);
+				const CreateFreeQueue = globalThis["Module"].cwrap('CreateFreeQueue','number',[ 'number', 'number' ]);
+				const PrintQueueAddresses = globalThis["Module"].cwrap('PrintQueueAddresses','',[ 'number' ]);
+				globalThis["instance"] = GetFreeQueueThreads();
+				const bufferLengthPtr = GetFreeQueuePointers( globalThis["instance"], "buffer_length" );
+				const channelCountPtr = GetFreeQueuePointers( globalThis["instance"], "channel_count" );
+				const statePtr = GetFreeQueuePointers( globalThis["instance"], "state" );
+				const channelDataPtr = GetFreeQueuePointers( globalThis["instance"], "channel_data" );
 				const pointers = new Object();
-				pointers.memory = window["Module"].HEAPU8;
+				pointers.memory = globalThis["Module"].HEAPU8;
 				pointers.bufferLengthPointer = bufferLengthPtr;
 				pointers.channelCountPointer = channelCountPtr;
 				pointers.statePointer = statePtr;
 				pointers.channelDataPointer = channelDataPtr;
-				window["queue"] = FreeQueue.fromPointers( pointers );
-				if ( window["queue"] != undefined ) window["queue"].printAvailableReadAndWrite();
+				globalThis["queue"] = FreeQueue.fromPointers( pointers );
+				if ( globalThis["queue"] != undefined ) globalThis["queue"].printAvailableReadAndWrite();
 			};
-			window["Module"].onRuntimeInitialized = () => { 				
-				window["queue"] = undefined;
-				window["instance"] = undefined;
-				window["Module"].callMain("");
-				window.onFreeQueueInitialize();
+			globalThis["Module"].onRuntimeInitialized = () => { 				
+				globalThis["queue"] = undefined;
+				globalThis["instance"] = undefined;
+				globalThis["Module"].callMain("");
+				globalThis.onFreeQueueInitialize();
 			};
-			const t1 = window.document.getElementById("startTest1");
+			const t1 = globalThis.document.getElementById("startTest1");
 			t1.addEventListener( "click", async (e) => {
-				const CreateFreeQueueThreads = window["Module"].cwrap('CreateFreeQueueThreads','number',[ '' ]);
+				const CreateFreeQueueThreads = globalThis["Module"].cwrap('CreateFreeQueueThreads','number',[ '' ]);
 				const r = CreateFreeQueueThreads();
 				if ( r == 1 ) {
-					window.onFreeQueueInitialize();
+					globalThis.onFreeQueueInitialize();
 				}
 
 			});
-			const t2 = window.document.getElementById("startTest2");
+			const t2 = globalThis.document.getElementById("startTest2");
 			t2.addEventListener( "click", async (e) => {
-				const DestroyFreeQueueThreads = window["Module"].cwrap('DestroyFreeQueueThreads','number',[ '' ]);
+				const DestroyFreeQueueThreads = globalThis["Module"].cwrap('DestroyFreeQueueThreads','number',[ '' ]);
 				const r = DestroyFreeQueueThreads();
 				if ( r == 1 ) {
-					window["queue"] = undefined;
-					window["instance"] = undefined;
+					globalThis["queue"] = undefined;
+					globalThis["instance"] = undefined;
 				}
 			});
-			const t3 = window.document.getElementById("startTest3");
+			const t3 = globalThis.document.getElementById("startTest3");
 			t3.addEventListener( "click", async (e) => {
-				const PrintQueueInfo = window["Module"].cwrap('PrintQueueInfo','',[ 'number' ]);
-				if ( window["instance"] != undefined ) {	
-					PrintQueueInfo( window["instance"] );
-					if ( window["queue"] != undefined ) window["queue"].printAvailableReadAndWrite();
+				const PrintQueueInfo = globalThis["Module"].cwrap('PrintQueueInfo','',[ 'number' ]);
+				if ( globalThis["instance"] != undefined ) {	
+					PrintQueueInfo( globalThis["instance"] );
+					if ( globalThis["queue"] != undefined ) globalThis["queue"].printAvailableReadAndWrite();
 				}
 			});
-			const t4 = window.document.getElementById("startTest4");
+			const t4 = globalThis.document.getElementById("startTest4");
 			t4.addEventListener( "click", async (e) => {
-				const PrintQueueInfo = window["Module"].cwrap('PrintQueueInfo','',[ 'number' ]);
+				const PrintQueueInfo = globalThis["Module"].cwrap('PrintQueueInfo','',[ 'number' ]);
 				const d = [2];
-				let bufferSize = window["samplerate"] / 25;
+				let bufferSize = globalThis["samplerate"] / 25;
 				d[0] = new Float64Array(bufferSize);
 				d[1] = new Float64Array(bufferSize);
-				if ( window["queue"] != undefined ) {
-					const r = window["queue"].pull( d, bufferSize );
+				if ( globalThis["queue"] != undefined ) {
+					const r = globalThis["queue"].pull( d, bufferSize );
 					console.log( "pull: " + r );
 					console.log( "pull data: " + d );
-					window["queue"].printAvailableReadAndWrite();
+					globalThis["queue"].printAvailableReadAndWrite();
 				}
 			});
-			const t5 = window.document.getElementById("startTest5");
+			const t5 = globalThis.document.getElementById("startTest5");
 			t5.addEventListener( "click", async (e) => {
-				if ( window["isPlaybackInProgress"] == false ) {
-					window.startplayback();
+				if ( globalThis["isPlaybackInProgress"] == false ) {
+					globalThis.startplayback();
 				}
 			});
-			const t6 = window.document.getElementById("startTest6");
+			const t6 = globalThis.document.getElementById("startTest6");
 			t6.addEventListener( "click", async (e) => {
-				if ( window["isPlaybackInProgress"] == true ) {
-					window.stopplayback();
+				if ( globalThis["isPlaybackInProgress"] == true ) {
+					globalThis.stopplayback();
 				}
 			});
 		} 
@@ -121,9 +119,7 @@
 
 <body>
 	<div class="nk-radio"><slot name="nk-radio"></slot></div>
-
-        <nk-radio slot="nk-radio" data-field="settings-2" data-services-path="webgpu"></nk-radio>
-
+	<nk-radio slot="nk-radio" data-field="settings-2" data-services-path="webgpu"></nk-radio>
 	<button id="startTest1">CreateThreads</button>
 	<button id="startTest2">DestroyThreads</button>
 	<button id="startTest3">PrintVarStack</button>
