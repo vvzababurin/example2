@@ -4,7 +4,6 @@ import server from './webpack.server.mjs';
 
 export default merge(common, server, {
   mode: 'development',
-  watch: true,
   watchOptions: {
     ignored: '**/node_modules',
   }

@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 
 set DIR=%cd%
 
-set INSTALLDIR=..\build
+set INSTALLDIR=..\%BUILDDIR%
 
 set JS_FILE=free-queue.js
 set JS_FILE_TEMP=free-queue.js.temp
@@ -33,6 +33,11 @@ if exist %JS_WASM_FILE% (
 	@echo Delete existing file: %JS_WASM_FILE%
 	@del %JS_WASM_FILE%
 )
+
+if "%~1"=="clean" (
+	@echo %DIR% directory: Clean completed...
+	exit /b 0
+) 
 
 @echo %CC%: free_queue.cpp -Llib -I../include -Iinclude -pthread %EMCCFLAGS% -o %JS_WASM_JS_FILE%
 @call %CC% free_queue.cpp -Llib -I../include -Iinclude -pthread %EMCCFLAGS% -o %JS_WASM_JS_FILE%

@@ -2,7 +2,7 @@
 
 export DIR=`pwd`
 
-export INSTALLDIR=../build
+export INSTALLDIR=../$BUILDDIR
 
 export JS_FILE=free-queue.js
 export JS_FILE_TEMP=free-queue.js.temp
@@ -29,6 +29,11 @@ fi
 if [ -f $JS_WASM_FILE ]; then
 	echo Delete existing file: $JS_WASM_FILE
 	rm $JS_WASM_FILE
+fi
+
+if [ $1 == "clean" ]; then
+	echo $DIR directory: Clean completed...
+	exit 0
 fi
 
 echo $CC: free_queue.cpp -Llib -I../include -Iinclude -pthread $EMCCFLAGS -o $JS_WASM_JS_FILE
