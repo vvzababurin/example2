@@ -35,7 +35,7 @@ if exist %JS_WASM_FILE% (
 )
 
 if "%~1"=="clean" (
-	@echo %DIR% directory: Clean completed...
+	@echo "%DIR%" directory: Clean completed...
 	exit /b 0
 ) 
 
