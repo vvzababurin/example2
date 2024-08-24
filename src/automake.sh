@@ -32,7 +32,7 @@ if [ -f $JS_WASM_FILE ]; then
 fi
 
 if [ $1 == "clean" ]; then
-	echo \"$DIR\" directory: Clean completed...
+	echo Source directory: Clean completed...
 	exit 0
 fi
 
